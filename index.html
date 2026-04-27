@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bias Terminal — ES & NQ Intraday Bias</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0c0f;--bg2:#0d1117;--bg3:#111820;--border:#1e2530;--border2:#1a2030;--text:#e0e0e0;--muted:#667;--dim:#445;--faint:#334;--bull:#22c55e;--bear:#ef4444;--neut:#f59e0b;--blue:#4a9eff;}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;font-size:12px;min-height:100vh;}
+a{color:var(--blue);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:13px;color:var(--blue);letter-spacing:3px;font-weight:700;}
+.nav-tabs{display:flex;gap:2px;}
+.nav-tab{padding:5px 18px;border-radius:3px;cursor:pointer;font-size:10px;letter-spacing:1px;color:var(--muted);border:1px solid transparent;transition:all .2s;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{background:var(--bg3);color:var(--blue);border-color:#4a9eff33;}
+.nav-right{display:flex;align-items:center;gap:10px;font-size:9px;color:var(--dim);flex-wrap:wrap;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--bull);animation:pulse 1.5s infinite;flex-shrink:0;}
+.live-dot.err{background:var(--bear);animation:none;}
+.live-dot.wait{background:var(--neut);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.refresh-btn{background:var(--bg3);border:1px solid var(--border);color:var(--blue);font-size:9px;padding:4px 10px;border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:1px;}
+.refresh-btn:hover{background:#1a2535;}
+
+/* PAGES */
+.page{display:none;padding:16px 20px;max-width:1200px;margin:0 auto;}
+.page.active{display:block;}
+
+/* INSTRUMENT TABS */
+.inst-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.itab{padding:5px 16px;border-radius:3px;cursor:pointer;font-size:10px;letter-spacing:1px;color:var(--muted);border:1px solid var(--border);background:var(--bg);transition:all .2s;}
+.itab:hover{color:var(--text);}
+.itab.active{background:var(--bg3);color:var(--blue);border-color:#4a9eff33;}
+
+/* LAYOUT */
+.grid-main{display:grid;grid-template-columns:1fr 210px;gap:12px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.left-col{display:flex;flex-direction:column;gap:12px;}
+.right-col{display:flex;flex-direction:column;gap:12px;}
+@media(max-width:900px){.grid-main{grid-template-columns:1fr;}.grid2{grid-template-columns:1fr;}}
+
+/* PANELS */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px;}
+.plabel{font-size:9px;color:var(--faint);letter-spacing:2px;margin-bottom:3px;text-transform:uppercase;}
+.ptitle{font-size:10px;color:var(--muted);margin-bottom:12px;}
+.divider{border:none;border-top:1px solid var(--border2);margin:10px 0;}
+
+/* METRIC */
+.metric-val{font-size:24px;font-weight:700;}
+.metric-sub{font-size:9px;color:var(--muted);margin-top:4px;}
+.bull{color:var(--bull);} .bear{color:var(--bear);} .neut{color:var(--neut);} .blue{color:var(--blue);}
+
+/* REGIME BADGE */
+.regime-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:10px;}
+
+/* SCORE RING */
+.score-ring{position:relative;width:64px;height:64px;flex-shrink:0;}
+.score-ring svg{transform:rotate(-90deg);}
+.score-lbl{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:15px;font-weight:700;}
+
+/* SESSION */
+.sess-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #111820;}
+.sess-row:last-child{border:none;}
+.sess-name{font-size:10px;color:var(--muted);}
+.sess-val{font-size:10px;font-weight:700;}
+
+/* COT */
+.cot-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.cot-name{font-size:9px;color:var(--muted);width:80px;flex-shrink:0;}
+.cot-track{flex:1;height:5px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.cot-fill{height:100%;border-radius:2px;}
+.cot-val{font-size:9px;width:62px;text-align:right;flex-shrink:0;}
+.cot-idx{font-size:9px;width:28px;text-align:right;flex-shrink:0;font-weight:700;}
+
+/* COMPOSITE */
+.comp-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.comp-lbl{font-size:9px;color:var(--muted);width:82px;flex-shrink:0;}
+.comp-track{flex:1;height:7px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative;}
+.comp-fill{height:100%;border-radius:3px;position:absolute;top:0;left:0;}
+.comp-val{font-size:9px;width:38px;text-align:right;flex-shrink:0;}
+.comp-raw{font-size:9px;color:var(--dim);width:40px;text-align:right;flex-shrink:0;}
+
+/* MACRO GRID */
+.macro-g{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.macro-item{background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:8px;}
+.macro-name{font-size:8px;color:var(--dim);letter-spacing:1px;}
+.macro-val{font-size:13px;font-weight:700;margin-top:3px;}
+.macro-sub{font-size:8px;color:var(--dim);margin-top:2px;}
+
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
+.pill{font-size:8px;padding:3px 8px;border-radius:3px;letter-spacing:1px;}
+.pill.bull{background:#0a2e1a;color:var(--bull);border:1px solid #1a5c33;}
+.pill.bear{background:#2e0a0a;color:var(--bear);border:1px solid #5c1a1a;}
+.pill.neut{background:#1a1a0a;color:var(--neut);border:1px solid #5c4a0a;}
+
+/* REGIME PARAMS */
+.param-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #111820;font-size:10px;}
+.param-row:last-child{border:none;}
+
+/* LEGEND */
+.legend-row{display:flex;gap:12px;margin-top:6px;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--muted);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
+
+/* LEVELS */
+.lv-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #111820;font-size:10px;}
+.lv-row:last-child{border:none;}
+.lv-name{color:var(--dim);letter-spacing:1px;display:flex;align-items:center;gap:6px;}
+.lv-dot{width:7px;height:7px;border-radius:50%;}
+.lv-badge{font-size:8px;padding:2px 5px;border-radius:2px;}
+.lv-val{font-weight:700;}
+
+/* WEBHOOK / INPUTS */
+.inp-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.api-inp{flex:1;min-width:200px;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--blue);font-size:10px;padding:7px 10px;font-family:'Courier New',monospace;outline:none;}
+.api-inp::placeholder{color:var(--faint);}
+.btn{background:var(--bg3);border:1px solid var(--border);color:var(--blue);font-size:9px;padding:7px 14px;border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:1px;white-space:nowrap;}
+.btn:hover{background:#1a2535;}
+.btn.red{color:var(--bear);border-color:#ef444422;}
+.btn.green{color:var(--bull);border-color:#22c55e33;}
+.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;}
+.mini-wrap{display:flex;flex-direction:column;gap:3px;}
+.mini-lbl{font-size:8px;color:var(--dim);letter-spacing:1px;}
+.mini-inp{background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:11px;padding:5px 7px;font-family:'Courier New',monospace;outline:none;width:100%;}
+.status-row{display:flex;justify-content:space-between;font-size:9px;color:var(--dim);margin-top:5px;flex-wrap:wrap;gap:4px;}
+
+/* LOADING STATE */
+.skeleton{color:var(--faint);font-size:10px;padding:8px 0;}
+.loader{display:inline-block;width:10px;height:10px;border:1px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ERROR BANNER */
+.error-banner{background:#2e0a0a;border:1px solid #5c1a1a;border-radius:4px;padding:10px 14px;font-size:10px;color:var(--bear);margin-bottom:12px;display:none;}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo">BIAS///TERMINAL</div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="goPage('bias',this)">MACRO BIAS</div>
+    <div class="nav-tab" onclick="goPage('levels',this)">INTRADAY LEVELS</div>
+  </div>
+  <div class="nav-right">
+    <div class="live-dot" id="navDot"></div>
+    <span id="navStatus">LOADING...</span>
+    <span id="navTime" style="color:var(--faint);"></span>
+    <button class="refresh-btn" onclick="loadAll()">↻ REFRESH</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 1 — MACRO BIAS
+═══════════════════════════════════════════════ -->
+<div class="page active" id="page-bias">
+  <div class="error-banner" id="errorBanner"></div>
+  <div class="inst-tabs">
+    <div class="itab active" onclick="setInst('ES',this)">ES · S&P 500</div>
+    <div class="itab" onclick="setInst('NQ',this)">NQ · NASDAQ 100</div>
+  </div>
+
+  <div class="grid-main">
+    <div class="left-col">
+
+      <!-- SIGNAL CONSTELLATION -->
+      <div class="panel">
+        <div class="plabel">SIGNAL CONSTELLATION</div>
+        <div class="ptitle">Bias × Confidence · <span id="modelCount">—</span> active signals</div>
+        <div class="legend-row">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--bull);"></div>BULLISH</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--bear);"></div>BEARISH</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#aaa;"></div>CONSENSUS</div>
+        </div>
+        <div style="position:relative;height:260px;margin-top:10px;">
+          <canvas id="constellation" role="img" aria-label="Signal constellation chart — bias vs confidence for current instrument"></canvas>
+        </div>
+      </div>
+
+      <!-- COT DATA -->
+      <div class="panel">
+        <div class="plabel">COT DATA · CFTC TFF REPORT</div>
+        <div class="ptitle" id="cotTitle">Net Positioning · COT Index 0–100 · Weekly (Fri 15:30 ET)</div>
+        <div id="cotSection"><div class="skeleton"><span class="loader"></span>Loading CFTC data...</div></div>
+        <div style="margin-top:8px;font-size:9px;color:var(--faint);">
+          Index &lt;20 → <span style="color:var(--bull);">BULL SIGNAL</span> &nbsp;·&nbsp;
+          Index &gt;80 → <span style="color:var(--bear);">FADE (bear)</span> &nbsp;·&nbsp;
+          Index 40–60 → <span style="color:var(--neut);">NEUTRAL</span>
+        </div>
+      </div>
+
+      <!-- COMPOSITE SCORE -->
+      <div class="panel">
+        <div class="plabel">COMPOSITE MACRO SCORE</div>
+        <div class="ptitle">Yield Curve 30% · VIX 20% · DXY 15% · HY Spread 10% · (PMI manual)</div>
+        <div id="compositeSection"><div class="skeleton"><span class="loader"></span>Loading FRED data...</div></div>
+      </div>
+
+      <!-- MACRO INDICATORS -->
+      <div class="panel">
+        <div class="plabel">MACRO INDICATORS · FRED LIVE DATA</div>
+        <div class="macro-g" id="macroGrid"><div class="skeleton" style="grid-column:1/-1;"><span class="loader"></span>Loading...</div></div>
+        <div class="pills" id="signalPills"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+      <div class="panel">
+        <div class="plabel">REGIME</div>
+        <div id="regimeBadge"><div class="skeleton">—</div></div>
+        <div class="plabel" style="margin-top:8px;">CONSENSUS</div>
+        <div class="metric-val" id="consensusVal" style="color:var(--faint);">—</div>
+        <div class="metric-sub">NET DIR: <span id="netDir" style="color:var(--faint);">—</span></div>
+        <hr class="divider">
+        <div class="plabel">BIAS SCORE</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+          <div class="score-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#1a2030" stroke-width="6"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#334" stroke-width="6"
+                stroke-dasharray="163.4" stroke-dashoffset="163" stroke-linecap="round" id="biasRing"/>
+            </svg>
+            <div class="score-lbl" id="biasScore" style="color:var(--faint);">—</div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);line-height:1.6;" id="biasDesc">Waiting for data...</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="plabel">SESSION BIAS</div>
+        <div class="sess-row"><div class="sess-name">ASIA</div><div class="sess-val" id="asiaB" style="color:var(--faint);">—</div></div>
+        <div class="sess-row"><div class="sess-name">LONDON</div><div class="sess-val" id="londonB" style="color:var(--faint);">—</div></div>
+        <div class="sess-row"><div class="sess-name">NEW YORK</div><div class="sess-val" id="nyB" style="color:var(--faint);">—</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="plabel">REGIME PARAMETERS</div>
+        <div id="regimeParams"><div class="skeleton">—</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="plabel">DATA STATUS</div>
+        <div id="dataStatus" style="font-size:9px;color:var(--dim);line-height:2.0;">—</div>
+        <div style="margin-top:8px;font-size:9px;color:var(--faint);">
+          FRED: daily · COT: weekly<br>Auto-refresh: 15 min
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 2 — INTRADAY LEVELS
+═══════════════════════════════════════════════ -->
+<div class="page" id="page-levels">
+  <div class="inst-tabs">
+    <div class="itab active" onclick="setLvlInst('ES',this)">ES · S&P 500</div>
+    <div class="itab" onclick="setLvlInst('NQ',this)">NQ · NASDAQ 100</div>
+  </div>
+  <div class="grid2" style="margin-bottom:12px;">
+    <div class="panel">
+      <div class="plabel">VWAP + STANDARD DEVIATION BANDS</div>
+      <div id="vwapLevels"></div>
+      <div style="font-size:9px;color:var(--faint);margin-top:8px;">Resets daily at 09:30 ET · Intraday only</div>
+    </div>
+    <div class="panel">
+      <div class="plabel">PREVIOUS DAY · PDH / PDC / PDL</div>
+      <div id="pdLevels"></div>
+      <div style="font-size:9px;color:var(--faint);margin-top:8px;">Fixed reference levels · Updated pre-market</div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:12px;">
+    <div class="plabel">PRICE POSITION — All levels on one axis</div>
+    <div id="posChart" style="padding:8px 0;"></div>
+  </div>
+
+  <div class="panel">
+    <div class="plabel">TRADINGVIEW WEBHOOK — Send live levels here</div>
+    <div class="inp-row">
+      <input class="api-inp" id="webhookUrl" placeholder="https://your-backend.railway.app/api/levels/ES"/>
+      <button class="btn green" onclick="startPoll()">▶ CONNECT</button>
+      <button class="btn red" onclick="stopPoll()">■ STOP</button>
+    </div>
+    <div class="status-row">
+      <span id="pollStatus" style="color:var(--neut);">● NOT CONNECTED</span>
+      <span id="pollTime" style="color:var(--faint);"></span>
+    </div>
+    <hr class="divider">
+    <div class="plabel">MANUAL OVERRIDE — Enter values directly</div>
+    <div class="mini-grid">
+      <div class="mini-wrap"><div class="mini-lbl">VWAP</div><input class="mini-inp" id="m_vwap" placeholder="5284.25"/></div>
+      <div class="mini-wrap"><div class="mini-lbl">SD1+</div><input class="mini-inp" id="m_sd1u" placeholder="5298.50"/></div>
+      <div class="mini-wrap"><div class="mini-lbl">SD1−</div><input class="mini-inp" id="m_sd1l" placeholder="5270.00"/></div>
+      <div class="mini-wrap"><div class="mini-lbl">SD2+</div><input class="mini-inp" id="m_sd2u" placeholder="5312.75"/></div>
+      <div class="mini-wrap"><div class="mini-lbl">SD2−</div><input class="mini-inp" id="m_sd2l" placeholder="5255.75"/></div>
+      <div class="mini-wrap"><div class="mini-lbl">PDH</div><input class="mini-inp" id="m_pdh" placeholder="5301.00"/></div>
+      <div class="mini-wrap"><div class="mini-lbl">PDC</div><input class="mini-inp" id="m_pdc" placeholder="5289.50"/></div>
+      <div class="mini-wrap"><div class="mini-lbl">PDL</div><input class="mini-inp" id="m_pdl" placeholder="5258.25"/></div>
+      <div class="mini-wrap"><div class="mini-lbl">LAST PRICE</div><input class="mini-inp" id="m_last" placeholder="5284.00"/></div>
+    </div>
+    <button class="btn" style="margin-top:10px;width:100%;" onclick="applyManual()">APPLY MANUAL VALUES</button>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+// After deploying your backend, replace this URL:
+const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:3001'
+  : 'https://YOUR_BACKEND.railway.app'; // ← replace after deploy
+
+// ─── STATE ────────────────────────────────────────────────
+let inst = 'ES', lvlInst = 'ES';
+let chartInst = null, pollInt = null, refreshInt = null;
+let liveData = { macro: null, cot: null, ts: null };
+const lvlState = {
+  ES:{vwap:null,sd1u:null,sd1l:null,sd2u:null,sd2l:null,pdh:null,pdc:null,pdl:null,last:null},
+  NQ:{vwap:null,sd1u:null,sd1l:null,sd2u:null,sd2l:null,pdh:null,pdc:null,pdl:null,last:null}
+};
+
+// ─── NAVIGATION ───────────────────────────────────────────
+function goPage(p, el) {
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  el.classList.add('active');
+}
+function setInst(i, el) {
+  inst = i;
+  document.querySelectorAll('#page-bias .itab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  renderBias();
+}
+function setLvlInst(i, el) {
+  lvlInst = i;
+  document.querySelectorAll('#page-levels .itab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  const u = document.getElementById('webhookUrl');
+  u.value = u.value.replace(/\/(ES|NQ)$/, '/'+i);
+  renderLevels();
+}
+
+// ─── HELPERS ──────────────────────────────────────────────
+function fmt(v, d=2) { return (v===null||v===undefined||isNaN(v)) ? '—' : parseFloat(v).toFixed(d); }
+function setNavStatus(state, msg) {
+  document.getElementById('navDot').className = 'live-dot'+(state==='ok'?'':state==='err'?' err':' wait');
+  document.getElementById('navStatus').textContent = msg;
+}
+
+// ─── DATA LOADING ─────────────────────────────────────────
+async function loadAll() {
+  setNavStatus('wait', 'LOADING...');
+  try {
+    const res = await fetch(`${API_BASE}/api/data`);
+    if (!res.ok) throw new Error('API '+res.status);
+    const d = await res.json();
+    liveData = { macro: d.macro, cot: d.cot, ts: d.ts };
+
+    const now = new Date().toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('navTime').textContent = now;
+    setNavStatus('ok', d.cached ? 'CACHED · '+now : 'LIVE · '+now);
+    document.getElementById('errorBanner').style.display = 'none';
+    renderBias();
+  } catch(e) {
+    setNavStatus('err', 'ERROR · '+e.message);
+    const b = document.getElementById('errorBanner');
+    b.style.display = 'block';
+    b.textContent = '⚠ Could not reach API: '+e.message+' — Make sure your backend is running at '+API_BASE;
+  }
+}
+
+// ─── BIAS COMPUTATION ─────────────────────────────────────
+function computeBias() {
+  const m = liveData.macro;
+  const cot = liveData.cot?.[inst];
+  const pts = [], pills = [];
+  let macroScore = 0, weights = 0;
+
+  const norm = (v, lo, hi) => v===null ? null : Math.max(-1, Math.min(1, (v-(lo+hi)/2)/((hi-lo)/2)));
+
+  if (m) {
+    const yc_s  = norm(m.yc,  -1,   3);
+    const vix_s = m.vix  ? norm(-m.vix, -40, -10) : null;
+    const dxy_s = m.dxy  ? norm(-m.dxy,-110, -90) : null;
+    const hy_s  = m.hy   ? norm(-m.hy, -900,-200) : null;
+
+    const addMacro = (s, w, label, x, yBull, yBear) => {
+      if (s === null) return;
+      macroScore += s * w; weights += w;
+      pts.push({x, y: +(s*80).toFixed(1), bull: s>0.1?true:s<-0.1?false:null, size:9, label});
+    };
+    addMacro(yc_s,  0.30, 'YLD CRV', 72, 55, -40);
+    addMacro(vix_s, 0.20, 'VIX',     65, 50, -50);
+    addMacro(dxy_s, 0.15, 'DXY',     55, 40, -35);
+    addMacro(hy_s,  0.10, 'CREDIT',  60, 38, -45);
+
+    if (m.vix !== null) pills.push({t:'VIX '+(m.vix<20?'LOW':m.vix<25?'NORM':'HIGH'), c:m.vix<20?'bull':m.vix<25?'neut':'bear'});
+    if (m.yc  !== null) pills.push({t:m.yc>1.5?'EXPANSION':m.yc>0?'YC NORMAL':m.yc>-0.5?'YC FLAT':'YC INVERTED', c:m.yc>1?'bull':m.yc>0?'neut':'bear'});
+    if (m.dxy !== null) pills.push({t:'DXY '+(m.dxy<101?'WEAK':m.dxy<104?'NEUTRAL':'STRONG'), c:m.dxy<101?'bull':m.dxy<104?'neut':'bear'});
+    if (m.hy  !== null) pills.push({t:m.hy<350?'CREDIT OK':m.hy<600?'CREDIT NORM':'CREDIT RISK', c:m.hy<350?'bull':m.hy<600?'neut':'bear'});
+  }
+
+  if (cot) {
+    const ls = cot.ls;
+    const cotScore = ls.idx < 20 ? 0.3 : ls.idx > 80 ? -0.3 : (50-ls.idx)/100;
+    macroScore = weights > 0 ? macroScore/weights*0.7 + cotScore*0.3 : cotScore;
+    pts.push({x:85, y:+(cotScore*80).toFixed(1), bull:cotScore>0.1?true:cotScore<-0.1?false:null, size:12, label:'COT-LS'});
+    pts.push({x:75, y:cot.cm.net>0?30:-30, bull:cot.cm.net>0, size:9, label:'COT-CM'});
+    if (weights > 0) macroScore = macroScore; // already mixed above
+    if (ls.idx < 20) pills.push({t:'COT BULL SIG', c:'bull'});
+    else if (ls.idx > 80) pills.push({t:'COT FADE SIG', c:'bear'});
+    else pills.push({t:'COT NEUTRAL', c:'neut'});
+  } else if (weights > 0) {
+    macroScore = macroScore / weights;
+  }
+
+  const finalScore = Math.max(0, Math.min(100, Math.round((macroScore+1)/2*100)));
+  const consensus = macroScore >= 0 ? `+${(macroScore*100).toFixed(1)}%` : `${(macroScore*100).toFixed(1)}%`;
+  pts.push({x:50, y:+(macroScore*50).toFixed(1), bull:null, size:11, label:'CONS', consensus:true});
+  pills.push({t:macroScore>0.3?'RISK-ON':macroScore<-0.3?'RISK-OFF':'NEUTRAL', c:macroScore>0.3?'bull':macroScore<-0.3?'bear':'neut'});
+
+  return { score: finalScore, macroScore, pts, pills, consensus };
+}
+
+// ─── RENDER BIAS ──────────────────────────────────────────
+function renderBias() {
+  const m  = liveData.macro;
+  const cot = liveData.cot?.[inst];
+  const bias = computeBias();
+  const { score, macroScore, pts, pills, consensus } = bias;
+
+  const col   = score>55?'var(--bull)':score<45?'var(--bear)':'var(--neut)';
+  const label = score>55?'BULLISH':score<45?'BEARISH':'NEUTRAL';
+  const regime = macroScore>0.5?'RISK_ON':macroScore<-0.5?'RISK_OFF':'NEUTRAL';
+  const offset  = (163.4 - score/100*163.4).toFixed(1);
+
+  // Score ring
+  document.getElementById('biasRing').setAttribute('stroke', col.includes('bull')?'#22c55e':col.includes('bear')?'#ef4444':'#f59e0b');
+  document.getElementById('biasRing').setAttribute('stroke-dashoffset', offset);
+  document.getElementById('biasScore').textContent = score;
+  document.getElementById('biasScore').style.color = col.includes('bull')?'#22c55e':col.includes('bear')?'#ef4444':'#f59e0b';
+  document.getElementById('biasDesc').innerHTML =
+    `<strong style="color:${col.includes('bull')?'#22c55e':col.includes('bear')?'#ef4444':'#f59e0b'};font-size:12px;display:block;margin-bottom:3px;">${label}</strong>
+     <span style="font-size:9px;">${macroScore>0.3?'Macro aligned · favor direction.':macroScore<-0.3?'Risk-off · reduce exposure.':'Mixed signals · trade smaller.'}</span>`;
+
+  document.getElementById('consensusVal').textContent = consensus;
+  document.getElementById('consensusVal').className = 'metric-val '+(score>55?'bull':score<45?'bear':'neut');
+  document.getElementById('netDir').textContent = label;
+  document.getElementById('netDir').style.color = col.includes('bull')?'#22c55e':col.includes('bear')?'#ef4444':'#f59e0b';
+  document.getElementById('modelCount').textContent = pts.length;
+
+  const regColors = {RISK_ON:{bg:'#0a2e1a',c:'#22c55e',t:'RISK-ON · EXPANSION'},RISK_OFF:{bg:'#2e0a0a',c:'#ef4444',t:'RISK-OFF · DEFENSIVE'},NEUTRAL:{bg:'#1a1a0a',c:'#f59e0b',t:'NEUTRAL · MIXED'}};
+  const rc = regColors[regime];
+  document.getElementById('regimeBadge').innerHTML = `<div class="regime-badge" style="background:${rc.bg};color:${rc.c};border:1px solid ${rc.c}33;">${rc.t}</div>`;
+
+  const sCol = score>55?'#22c55e':score<45?'#ef4444':'#f59e0b';
+  const sLabel = score>55?'BULL':score<45?'BEAR':'NEUTRAL';
+  ['asiaB','londonB','nyB'].forEach(id=>{document.getElementById(id).textContent=sLabel;document.getElementById(id).style.color=sCol;});
+
+  // Regime params
+  const vixV = m?.vix;
+  document.getElementById('regimeParams').innerHTML = [
+    {l:'Risk Mult',  v:macroScore>0.3?'1.2×':macroScore<-0.3?'0.6×':'1.0×', c:macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#f59e0b'},
+    {l:'Strategy',   v:macroScore>0.3?'MEAN REV':macroScore<-0.3?'TREND FOLLOW':'MIXED', c:'#4a9eff'},
+    {l:'Stop Mult',  v:vixV?(vixV<15?'0.8×':vixV>30?'1.5×':'1.0×'):'—', c:'#e0e0e0'},
+    {l:'Max Lev',    v:macroScore>0.3?'2.0×':macroScore<-0.3?'1.0×':'1.5×', c:macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#f59e0b'},
+  ].map(p=>`<div class="param-row"><span style="color:var(--dim);">${p.l}</span><span style="color:${p.c};font-weight:700;">${p.v}</span></div>`).join('');
+
+  // COT
+  if (cot) {
+    document.getElementById('cotTitle').textContent = `Net Positioning · COT Index 0–100 · As of ${cot.date}`;
+    document.getElementById('cotSection').innerHTML = [cot.ls, cot.cm, cot.sm].map(g=>{
+      const pct = Math.min(100, Math.abs(g.net)/150000*100);
+      const c = g.net>0?'#22c55e':'#ef4444';
+      const ic = g.idx>80?'#ef4444':g.idx<20?'#22c55e':'#f59e0b';
+      return `<div class="cot-row">
+        <div class="cot-name">${g.label}</div>
+        <div class="cot-track"><div class="cot-fill" style="width:${pct}%;background:${c};"></div></div>
+        <div class="cot-val" style="color:${c}">${g.net>0?'+':''}${g.net.toLocaleString()}</div>
+        <div class="cot-idx" style="color:${ic}">${g.idx}</div>
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('cotSection').innerHTML = '<div class="skeleton">COT data not loaded — check API connection.</div>';
+  }
+
+  // Composite
+  if (m) {
+    const norm = (v,lo,hi)=>v===null?null:Math.max(-1,Math.min(1,(v-(lo+hi)/2)/((hi-lo)/2)));
+    const comps = [
+      {name:'Yield Curve', s:norm(m.yc,-1,3),   w:30, raw:m.yc!==null?fmt(m.yc)+'%':'—'},
+      {name:'VIX',         s:m.vix?norm(-m.vix,-40,-10):null, w:20, raw:m.vix?fmt(m.vix,1):'—'},
+      {name:'DXY',         s:m.dxy?norm(-m.dxy,-110,-90):null,w:15, raw:m.dxy?fmt(m.dxy,1):'—'},
+      {name:'HY Spread',   s:m.hy?norm(-m.hy,-900,-200):null, w:10, raw:m.hy?fmt(m.hy,0)+'bp':'—'},
+    ];
+    const total = comps.filter(c=>c.s!==null).reduce((a,c)=>a+c.w,0)||1;
+    const composite = comps.filter(c=>c.s!==null).reduce((a,c)=>a+c.s*c.w,0)/total;
+    const cc = composite>0.3?'#22c55e':composite<-0.3?'#ef4444':'#f59e0b';
+
+    document.getElementById('compositeSection').innerHTML =
+      `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="font-size:22px;font-weight:700;color:${cc};">${composite>=0?'+':''}${composite.toFixed(2)}</div>
+        <div style="font-size:10px;color:var(--muted);">${composite>0.5?'RISK-ON':composite<-0.5?'RISK-OFF':'NEUTRAL'}<br><span style="font-size:9px;color:var(--faint);">Composite −1 to +1</span></div>
+      </div>` +
+      comps.map(c=>{
+        if(c.s===null)return`<div class="comp-row"><div class="comp-lbl">${c.name}</div><div style="font-size:9px;color:var(--faint);flex:1;">No data</div></div>`;
+        const pct=Math.round((c.s+1)/2*100);
+        const cc2=c.s>0.3?'#22c55e':c.s<-0.3?'#ef4444':'#f59e0b';
+        return`<div class="comp-row">
+          <div class="comp-lbl">${c.name} <span style="color:var(--faint);font-size:8px;">${c.w}%</span></div>
+          <div class="comp-track"><div class="comp-fill" style="width:${pct}%;background:${cc2};"></div></div>
+          <div class="comp-val" style="color:${cc2}">${c.s>=0?'+':''}${c.s.toFixed(2)}</div>
+          <div class="comp-raw">${c.raw}</div>
+        </div>`;
+      }).join('');
+  }
+
+  // Macro grid
+  if (m) {
+    const items = [
+      {name:'VIX',      val:fmt(m.vix,1),    dir:m.vix?m.vix<20?'down':'up':null, note:m.vix?(m.vix<15?'Low vol · mean rev':m.vix<25?'Normal':m.vix<35?'High vol · trend':'Extreme ⚠'):'—'},
+      {name:'10Y YIELD',val:fmt(m.t10)+'%',  dir:m.t10?m.t10>4.5?'up':'neutral':null, note:m.t10?(m.t10>4.5?'Pressure on growth':m.t10<3.5?'Low · supportive':'Moderate'):'—'},
+      {name:'2Y YIELD', val:fmt(m.t2)+'%',   dir:null, note:'Fed policy proxy'},
+      {name:'YLD CURVE',val:fmt(m.yc)+'%',   dir:m.yc!==null?m.yc>0.5?'up':m.yc<0?'down':'neutral':null, note:m.yc!==null?(m.yc>1.5?'Expansion':m.yc>0?'Normal':m.yc>-0.5?'Flat':'Inverted ⚠'):'—'},
+      {name:'DXY',      val:fmt(m.dxy,1),    dir:m.dxy?m.dxy>104?'up':'down':null, note:m.dxy?(m.dxy>105?'Strong · risk-off':m.dxy<100?'Weak · risk-on':'Neutral'):'—'},
+      {name:'HY SPREAD',val:fmt(m.hy,0)+'bp',dir:m.hy?m.hy>500?'up':'down':null, note:m.hy?(m.hy<300?'Low risk':m.hy<500?'Normal':m.hy<800?'Elevated':'Crisis ⚠'):'—'},
+    ];
+    document.getElementById('macroGrid').innerHTML = items.map(it=>{
+      const cls=it.dir==='up'?'bull':it.dir==='down'?'bear':'neut';
+      const arr=it.dir==='up'?'▲':it.dir==='down'?'▼':'●';
+      return`<div class="macro-item">
+        <div class="macro-name">${it.name}</div>
+        <div class="macro-val ${it.dir&&it.val!=='—%'&&it.val!=='—bp'&&it.val!=='—'?cls:'neut'}">${it.dir&&it.val!=='—'?arr+' ':''} ${it.val}</div>
+        <div class="macro-sub">${it.note}</div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('signalPills').innerHTML = pills.map(p=>`<div class="pill ${p.c}">${p.t}</div>`).join('');
+
+  const now = new Date();
+  document.getElementById('dataStatus').innerHTML =
+    `FRED: ${m?now.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}):'Not loaded'}<br>`+
+    `COT: ${liveData.cot?.[inst]?.date||'Not loaded'}<br>`+
+    `Next refresh: ${new Date(now.getTime()+15*60000).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'})}`;
+
+  drawConstellation(pts);
+}
+
+// ─── CONSTELLATION CHART ──────────────────────────────────
+function drawConstellation(pts) {
+  const ctx = document.getElementById('constellation').getContext('2d');
+  if (chartInst) { chartInst.destroy(); }
+  chartInst = new Chart(ctx, {
+    type: 'bubble',
+    data: { datasets: [
+      {label:'Bullish',   data:pts.filter(p=>p.bull===true).map(p=>({x:p.x,y:p.y,r:p.size,label:p.label})),   backgroundColor:'rgba(34,197,94,0.3)',   borderColor:'rgba(34,197,94,0.85)',   borderWidth:1.5},
+      {label:'Bearish',   data:pts.filter(p=>p.bull===false).map(p=>({x:p.x,y:p.y,r:p.size,label:p.label})),  backgroundColor:'rgba(239,68,68,0.3)',    borderColor:'rgba(239,68,68,0.85)',   borderWidth:1.5},
+      {label:'Neutral',   data:pts.filter(p=>p.bull===null&&!p.consensus).map(p=>({x:p.x,y:p.y,r:p.size,label:p.label})), backgroundColor:'rgba(245,158,11,0.25)', borderColor:'rgba(245,158,11,0.7)', borderWidth:1.5},
+      {label:'Consensus', data:pts.filter(p=>p.consensus).map(p=>({x:p.x,y:p.y,r:p.size+3,label:p.label})), backgroundColor:'rgba(120,130,155,0.5)',  borderColor:'rgba(200,210,230,0.9)',  borderWidth:2},
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#0d1117',borderColor:'#1e2530',borderWidth:1,titleColor:'#e0e0e0',bodyColor:'#778',
+          callbacks:{label:(c)=>{const d=c.raw;return ` ${d.label||''} · Bias: ${d.y>0?'+':''}${d.y}  Conf: ${d.x}%`;}}}
+      },
+      scales:{
+        x:{min:0,max:105,
+          title:{display:true,text:'CONFIDENCE →',color:'#445',font:{size:9,family:'Courier New'}},
+          grid:{color:'#111820'},ticks:{color:'#445',font:{size:9},stepSize:25,callback:v=>v+'%'},border:{color:'#1e2530'}},
+        y:{min:-105,max:105,
+          title:{display:true,text:'BIAS ↑',color:'#445',font:{size:9,family:'Courier New'}},
+          grid:{color:(c)=>c.tick.value===0?'#2a3040':'#111820',lineWidth:(c)=>c.tick.value===0?1.5:1},
+          ticks:{color:'#445',font:{size:9},stepSize:25},border:{color:'#1e2530'}}
+      },
+      layout:{padding:{top:12,right:12,bottom:5,left:5}}
+    },
+    plugins:[{id:'ql',afterDraw(chart){
+      const{ctx,chartArea:{left,top,width,height}}=chart;
+      const cx=left+width/2, cy=top+height/2;
+      ctx.save(); ctx.font='9px Courier New';
+      ctx.fillStyle='rgba(34,197,94,0.15)';
+      ctx.fillText('BULLISH · LOW CONVICTION', left+6, cy-7);
+      ctx.fillText('BULLISH · HIGH CONVICTION', cx+4, cy-7);
+      ctx.fillStyle='rgba(239,68,68,0.15)';
+      ctx.fillText('BEARISH · LOW CONVICTION', left+6, cy+17);
+      ctx.fillText('BEARISH · HIGH CONVICTION', cx+4, cy+17);
+      ctx.restore();
+    }}]
+  });
+}
+
+// ─── LEVELS ───────────────────────────────────────────────
+function renderLevels() {
+  const d = lvlState[lvlInst];
+  document.getElementById('vwapLevels').innerHTML = [
+    {n:'VWAP',v:d.vwap,c:'#4a9eff',b:null},
+    {n:'SD1+',v:d.sd1u,c:'#22c55e',b:'+1σ'},
+    {n:'SD1−',v:d.sd1l,c:'#22c55e',b:'−1σ'},
+    {n:'SD2+',v:d.sd2u,c:'#f59e0b',b:'+2σ'},
+    {n:'SD2−',v:d.sd2l,c:'#f59e0b',b:'−2σ'},
+  ].map(r=>`<div class="lv-row">
+    <div class="lv-name"><div class="lv-dot" style="background:${r.c};"></div>${r.n}
+      ${r.b?`<span class="lv-badge" style="background:${r.c}18;color:${r.c};border:1px solid ${r.c}33;">${r.b}</span>`:''}
+    </div>
+    <div class="lv-val" style="color:${r.v!==null?r.c:'#334'}">${fmt(r.v)}</div>
+  </div>`).join('');
+
+  document.getElementById('pdLevels').innerHTML = [
+    {n:'PREV DAY HIGH', v:d.pdh, c:'#22c55e'},
+    {n:'PREV DAY CLOSE',v:d.pdc, c:'#778'},
+    {n:'PREV DAY LOW',  v:d.pdl, c:'#ef4444'},
+  ].map(r=>`<div class="lv-row">
+    <div class="lv-name"><div class="lv-dot" style="background:${r.c};"></div>${r.n}</div>
+    <div class="lv-val" style="color:${r.v!==null?r.c:'#334'}">${fmt(r.v)}</div>
+  </div>`).join('');
+
+  const el = document.getElementById('posChart');
+  const d2 = lvlState[lvlInst];
+  if (!d2.vwap||!d2.sd2u||!d2.sd2l){
+    el.innerHTML='<div style="color:#334;font-size:10px;padding:6px 0;">Enter levels above or connect webhook to see price position.</div>';
+    return;
+  }
+  const lo=d2.sd2l, hi=d2.sd2u, range=hi-lo, last=d2.last||d2.vwap;
+  const pct=v=>Math.min(100,Math.max(0,((v-lo)/range*100))).toFixed(1);
+  const allLvl=[
+    {l:'SD2+',v:d2.sd2u,c:'#f59e0b'},{l:'PDH',v:d2.pdh,c:'#22c55e88'},
+    {l:'SD1+',v:d2.sd1u,c:'#22c55e'},{l:'PDC',v:d2.pdc,c:'#778'},
+    {l:'VWAP',v:d2.vwap,c:'#4a9eff'},{l:'PDL',v:d2.pdl,c:'#ef444488'},
+    {l:'SD1−',v:d2.sd1l,c:'#22c55e'},{l:'SD2−',v:d2.sd2l,c:'#f59e0b'},
+  ].filter(x=>x.v!==null).sort((a,b)=>b.v-a.v);
+  el.innerHTML=`
+    <div style="position:relative;height:22px;background:#111820;border-radius:3px;margin-bottom:10px;overflow:visible;">
+      ${allLvl.map(l=>`<div style="position:absolute;left:${pct(l.v)}%;top:0;width:1px;height:100%;background:${l.c};opacity:0.9;"></div>`).join('')}
+      <div style="position:absolute;left:${pct(last)}%;top:-5px;width:2px;height:32px;background:#fff;border-radius:2px;z-index:2;"></div>
+      <div style="position:absolute;left:calc(${pct(last)}% + 4px);top:-14px;font-size:9px;color:#fff;white-space:nowrap;">${fmt(last)}</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      ${allLvl.map(l=>`<div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#556;">
+        <div style="width:7px;height:7px;border-radius:50%;background:${l.c};"></div>${l.l}
+        <span style="color:#e0e0e0;">${fmt(l.v)}</span>
+      </div>`).join('')}
+    </div>`;
+}
+
+async function fetchLevels() {
+  const url = document.getElementById('webhookUrl').value.trim();
+  if (!url) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/levels/${lvlInst}`);
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    const now = new Date().toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    lvlState[lvlInst]={vwap:data.vwap??null,sd1u:data.sd1_upper??null,sd1l:data.sd1_lower??null,sd2u:data.sd2_upper??null,sd2l:data.sd2_lower??null,pdh:data.pdh??null,pdc:data.pdc??null,pdl:data.pdl??null,last:data.last??null};
+    document.getElementById('pollStatus').textContent='● LIVE · '+now;
+    document.getElementById('pollStatus').style.color='#22c55e';
+    document.getElementById('pollTime').textContent=now;
+    renderLevels();
+  } catch(e) {
+    document.getElementById('pollStatus').textContent='● ERROR · '+e.message;
+    document.getElementById('pollStatus').style.color='#ef4444';
+  }
+}
+function startPoll(){stopPoll();fetchLevels();pollInt=setInterval(fetchLevels,5000);}
+function stopPoll(){if(pollInt){clearInterval(pollInt);pollInt=null;}}
+function applyManual(){
+  const g=id=>{const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v;};
+  lvlState[lvlInst]={vwap:g('m_vwap'),sd1u:g('m_sd1u'),sd1l:g('m_sd1l'),sd2u:g('m_sd2u'),sd2l:g('m_sd2l'),pdh:g('m_pdh'),pdc:g('m_pdc'),pdl:g('m_pdl'),last:g('m_last')};
+  renderLevels();
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+document.getElementById('navTime').textContent = new Date().toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
+renderLevels();
+loadAll();
+// Auto-refresh every 15 minutes
+refreshInt = setInterval(loadAll, 15 * 60 * 1000);
+</script>
+</body>
+</html>
