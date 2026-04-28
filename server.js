@@ -19,7 +19,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const stripe   = new Stripe(STRIPE_KEY);
 
 // ── Serve static frontend ─────────────────────────────────
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
 // ══ AUTH HELPERS ══════════════════════════════════════════
 
@@ -263,12 +263,12 @@ app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISO
 // ══ CATCH-ALL → frontend ══════════════════════════════════
 
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, 'public', 'index.html');
-  const altPath = path.join(process.cwd(), 'public', 'index.html');
   const fs = require('fs');
-  if (fs.existsSync(indexPath)) res.sendFile(indexPath);
-  else if (fs.existsSync(altPath)) res.sendFile(altPath);
-  else res.status(404).send('index.html not found at: ' + indexPath + ' or ' + altPath);
+  const p1 = path.join(__dirname, 'public', 'index.html');
+  const p2 = path.join(__dirname, 'index.html');
+  if (fs.existsSync(p1)) res.sendFile(p1);
+  else if (fs.existsSync(p2)) res.sendFile(p2);
+  else res.status(404).send('Not found. __dirname=' + __dirname + ' files=' + fs.readdirSync(__dirname).join(','));
 });
 
 const PORT = process.env.PORT || 3000;
