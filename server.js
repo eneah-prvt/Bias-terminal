@@ -262,7 +262,14 @@ app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISO
 
 // ══ CATCH-ALL → frontend ══════════════════════════════════
 
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('*', (req, res) => {
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  const altPath = path.join(process.cwd(), 'public', 'index.html');
+  const fs = require('fs');
+  if (fs.existsSync(indexPath)) res.sendFile(indexPath);
+  else if (fs.existsSync(altPath)) res.sendFile(altPath);
+  else res.status(404).send('index.html not found at: ' + indexPath + ' or ' + altPath);
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Bias Terminal v2 running on port ${PORT}`));
