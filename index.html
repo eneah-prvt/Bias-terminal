@@ -1470,7 +1470,7 @@ function setCheck(id, cls, symbol) {
 }
 
 // ── Session Page trigger ──────────────────────────────────
-function showDashPage(page, el) {
+async function showDashPage(page, el) {
   document.querySelectorAll('.dash-page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('dash-' + page).classList.add('active');
