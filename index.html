@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bias Terminal — Professional ES & NQ Macro Bias</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0c0f;--bg2:#0d1117;--bg3:#111820;--bg4:#0f1520;
+  --border:#1e2530;--border2:#1a2030;
+  --text:#e0e0e0;--muted:#778;--dim:#445;--dimmer:#2a3040;
+  --bull:#22c55e;--bear:#ef4444;--neut:#f59e0b;--blue:#4a9eff;
+  --blue2:#3b82f6;--purple:#8b5cf6;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Courier New',monospace;}
+a{color:var(--blue);text-decoration:none;}
+input,button{font-family:'Courier New',monospace;}
+
+/* ── VIEWS ── */
+.view{display:none;min-height:100vh;}
+.view.active{display:block;}
+
+/* ══ LANDING ══════════════════════════════════════════════ */
+.land-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:16px 40px;background:rgba(10,12,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid rgba(30,37,48,0.5);}
+.land-logo{font-size:14px;color:var(--blue);letter-spacing:4px;font-weight:700;}
+.land-nav-right{display:flex;gap:10px;align-items:center;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:10px;padding:7px 18px;border-radius:4px;cursor:pointer;letter-spacing:1px;transition:all .2s;}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue);}
+.btn-primary{background:var(--blue);border:1px solid var(--blue);color:#fff;font-size:10px;padding:7px 20px;border-radius:4px;cursor:pointer;letter-spacing:1px;font-weight:700;transition:all .2s;}
+.btn-primary:hover{background:#3b82f6;}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(74,158,255,0.08) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(34,197,94,0.04) 0%,transparent 60%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.2);border-radius:20px;padding:6px 16px;font-size:10px;color:var(--blue);letter-spacing:2px;margin-bottom:32px;}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--bull);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.hero h1{font-size:clamp(32px,6vw,64px);font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:24px;color:#fff;}
+.hero h1 span{color:var(--blue);}
+.hero p{font-size:clamp(13px,2vw,16px);color:var(--muted);max-width:520px;line-height:1.8;margin-bottom:40px;font-family:system-ui,sans-serif;}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:64px;}
+.btn-hero{background:var(--blue);color:#fff;font-size:12px;padding:14px 32px;border-radius:5px;cursor:pointer;letter-spacing:1px;font-weight:700;border:none;transition:all .2s;font-family:'Courier New',monospace;}
+.btn-hero:hover{background:#3b82f6;transform:translateY(-1px);}
+.btn-hero-ghost{background:transparent;color:var(--muted);font-size:12px;padding:14px 32px;border-radius:5px;cursor:pointer;letter-spacing:1px;border:1px solid var(--border);transition:all .2s;font-family:'Courier New',monospace;}
+.btn-hero-ghost:hover{border-color:var(--muted);color:var(--text);}
+
+/* DASHBOARD PREVIEW */
+.preview-wrap{position:relative;width:100%;max-width:900px;margin:0 auto;}
+.preview-glow{position:absolute;inset:-40px;background:radial-gradient(ellipse at center,rgba(74,158,255,0.1) 0%,transparent 70%);pointer-events:none;}
+.preview-frame{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.6);}
+.preview-bar{display:flex;align-items:center;gap:6px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg3);}
+.preview-dot{width:10px;height:10px;border-radius:50%;}
+.preview-url{flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:3px;padding:4px 12px;font-size:10px;color:var(--dim);margin:0 12px;}
+.preview-content{padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.prev-card{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:12px;}
+.prev-label{font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;}
+.prev-val{font-size:18px;font-weight:700;}
+.prev-sub{font-size:8px;color:var(--dim);margin-top:4px;}
+.prev-chart{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:12px;grid-column:1/-1;}
+.prev-chart-inner{height:100px;background:linear-gradient(180deg,rgba(34,197,94,0.15) 0%,rgba(239,68,68,0.15) 100%);border-radius:3px;position:relative;overflow:hidden;}
+.prev-chart-line{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--bull),var(--bull),var(--neut),var(--bear));opacity:0.6;}
+
+/* FEATURES */
+.features{padding:100px 40px;max-width:1100px;margin:0 auto;}
+.section-label{font-size:9px;color:var(--blue);letter-spacing:3px;text-align:center;margin-bottom:12px;}
+.section-title{font-size:clamp(22px,4vw,36px);font-weight:700;text-align:center;color:#fff;margin-bottom:16px;}
+.section-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:60px;font-family:system-ui,sans-serif;line-height:1.7;}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:768px){.feat-grid{grid-template-columns:1fr;}}
+.feat-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:24px;transition:border-color .2s;}
+.feat-card:hover{border-color:rgba(74,158,255,0.3);}
+.feat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:16px;}
+.feat-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:1px;}
+.feat-desc{font-size:12px;color:var(--muted);line-height:1.7;font-family:system-ui,sans-serif;}
+
+/* STATS BAR */
+.stats-bar{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center;}
+.stat-val{font-size:28px;font-weight:700;color:var(--blue);}
+.stat-lbl{font-size:10px;color:var(--dim);letter-spacing:2px;margin-top:4px;}
+
+/* ══ PRICING ═══════════════════════════════════════════════ */
+#view-pricing{background:var(--bg);}
+.pricing-wrap{max-width:480px;margin:0 auto;padding:100px 24px 60px;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);cursor:pointer;margin-bottom:40px;background:none;border:none;letter-spacing:1px;}
+.back-btn:hover{color:var(--text);}
+.pricing-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:32px;position:relative;overflow:hidden;}
+.pricing-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--purple));}
+.pricing-badge{display:inline-block;background:rgba(74,158,255,0.1);border:1px solid rgba(74,158,255,0.25);color:var(--blue);font-size:9px;padding:3px 12px;border-radius:20px;letter-spacing:2px;margin-bottom:20px;}
+.pricing-name{font-size:13px;color:var(--muted);letter-spacing:3px;margin-bottom:12px;}
+.pricing-price{display:flex;align-items:baseline;gap:4px;margin-bottom:6px;}
+.pricing-price-val{font-size:48px;font-weight:700;color:#fff;}
+.pricing-price-cur{font-size:20px;color:var(--muted);align-self:flex-start;margin-top:10px;}
+.pricing-price-period{font-size:12px;color:var(--dim);margin-left:4px;}
+.pricing-price-orig{font-size:13px;color:var(--dim);text-decoration:line-through;margin-bottom:20px;min-height:20px;}
+.pricing-features{list-style:none;margin:20px 0 28px;}
+.pricing-features li{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--muted);padding:7px 0;border-bottom:1px solid var(--border2);font-family:system-ui,sans-serif;}
+.pricing-features li:last-child{border:none;}
+.pricing-features li::before{content:'✓';color:var(--bull);font-size:12px;flex-shrink:0;}
+.promo-section{margin-bottom:20px;}
+.promo-row{display:flex;gap:8px;}
+.promo-inp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:9px 12px;outline:none;letter-spacing:1px;text-transform:uppercase;}
+.promo-inp:focus{border-color:var(--blue);}
+.promo-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);font-size:10px;padding:9px 16px;border-radius:4px;cursor:pointer;letter-spacing:1px;white-space:nowrap;transition:all .2s;}
+.promo-btn:hover{border-color:var(--blue);color:var(--blue);}
+.promo-msg{font-size:10px;margin-top:6px;min-height:16px;}
+.promo-msg.ok{color:var(--bull);}
+.promo-msg.err{color:var(--bear);}
+.checkout-btn{width:100%;background:var(--blue);border:none;color:#fff;font-size:12px;padding:15px;border-radius:5px;cursor:pointer;font-weight:700;letter-spacing:2px;transition:all .2s;}
+.checkout-btn:hover{background:#3b82f6;}
+.checkout-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.pricing-footer{text-align:center;font-size:10px;color:var(--dim);margin-top:16px;line-height:1.7;}
+
+/* ══ AUTH ══════════════════════════════════════════════════ */
+#view-auth{background:var(--bg);}
+.auth-wrap{max-width:400px;margin:0 auto;padding:100px 24px 60px;}
+.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:32px;position:relative;overflow:hidden;}
+.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--purple));}
+.auth-logo{font-size:13px;color:var(--blue);letter-spacing:4px;font-weight:700;text-align:center;margin-bottom:28px;}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:5px;padding:3px;margin-bottom:24px;}
+.auth-tab{flex:1;padding:7px;text-align:center;font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:3px;color:var(--muted);transition:all .2s;}
+.auth-tab.active{background:var(--bg2);color:var(--text);border:1px solid var(--border);}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:9px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;padding:10px 12px;outline:none;transition:border-color .2s;}
+.field input:focus{border-color:var(--blue);}
+.auth-btn{width:100%;background:var(--blue);border:none;color:#fff;font-size:11px;padding:13px;border-radius:4px;cursor:pointer;font-weight:700;letter-spacing:2px;margin-top:4px;transition:all .2s;}
+.auth-btn:hover{background:#3b82f6;}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.auth-msg{font-size:10px;text-align:center;margin-top:12px;min-height:16px;line-height:1.5;}
+.auth-msg.err{color:var(--bear);}
+.auth-msg.ok{color:var(--bull);}
+.auth-footer{text-align:center;font-size:10px;color:var(--dim);margin-top:20px;}
+.auth-footer a{color:var(--blue);cursor:pointer;}
+
+/* ══ DASHBOARD NAV ════════════════════════════════════════ */
+.dash-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:8px;}
+.dash-logo{font-size:12px;color:var(--blue);letter-spacing:3px;font-weight:700;}
+.dash-nav-tabs{display:flex;gap:2px;}
+.nav-tab{padding:5px 16px;border-radius:3px;cursor:pointer;font-size:10px;letter-spacing:1px;color:var(--muted);border:1px solid transparent;background:none;transition:all .2s;}
+.nav-tab.active{background:var(--bg3);color:var(--blue);border-color:rgba(74,158,255,0.2);}
+.nav-tab:hover{color:var(--text);}
+.dash-nav-right{display:flex;align-items:center;gap:10px;font-size:9px;color:var(--dim);}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--bull);animation:pulse 1.5s infinite;flex-shrink:0;}
+.live-dot.err{background:var(--bear);animation:none;}
+.live-dot.wait{background:var(--neut);animation:none;}
+.dash-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);font-size:9px;padding:4px 12px;border-radius:3px;cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.dash-btn:hover{color:var(--text);border-color:var(--muted);}
+.user-pill{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:4px 10px;font-size:9px;color:var(--muted);}
+.user-dot{width:6px;height:6px;border-radius:50%;background:var(--bull);}
+
+/* ══ DASHBOARD PAGES ══════════════════════════════════════ */
+.dash-page{display:none;padding:14px 20px;max-width:1200px;margin:0 auto;}
+.dash-page.active{display:block;}
+.inst-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.itab{padding:5px 16px;border-radius:3px;cursor:pointer;font-size:10px;letter-spacing:1px;color:var(--muted);border:1px solid var(--border);background:var(--bg);transition:all .2s;}
+.itab.active{background:var(--bg3);color:var(--blue);border-color:rgba(74,158,255,0.25);}
+.grid-main{display:grid;grid-template-columns:1fr 210px;gap:12px;}
+.grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.right-col{display:flex;flex-direction:column;gap:10px;}
+@media(max-width:800px){.grid-main,.grid-2col{grid-template-columns:1fr;}}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px;}
+.plabel{font-size:9px;color:var(--dimmer);letter-spacing:2px;margin-bottom:3px;text-transform:uppercase;}
+.ptitle{font-size:10px;color:var(--muted);margin-bottom:12px;}
+.divider{border:none;border-top:1px solid var(--border2);margin:10px 0;}
+.metric-val{font-size:22px;font-weight:700;}
+.bull{color:var(--bull);} .bear{color:var(--bear);} .neut{color:var(--neut);} .blue{color:var(--blue);}
+.sess-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #111820;}
+.sess-row:last-child{border:none;}
+.cot-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.cot-name{font-size:9px;color:var(--muted);width:80px;flex-shrink:0;}
+.cot-track{flex:1;height:5px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.cot-fill{height:100%;border-radius:2px;}
+.cot-val{font-size:9px;width:60px;text-align:right;flex-shrink:0;}
+.cot-idx{font-size:10px;font-weight:700;width:28px;text-align:right;flex-shrink:0;}
+.comp-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.comp-lbl{font-size:9px;color:var(--muted);width:82px;flex-shrink:0;}
+.comp-track{flex:1;height:7px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative;}
+.comp-fill{height:100%;border-radius:3px;position:absolute;top:0;left:0;}
+.comp-val{font-size:9px;width:36px;text-align:right;flex-shrink:0;}
+.comp-raw{font-size:9px;color:var(--dim);width:40px;text-align:right;flex-shrink:0;}
+.macro-g{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.macro-item{background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:9px;}
+.macro-name{font-size:8px;color:var(--dim);letter-spacing:1px;}
+.macro-val{font-size:13px;font-weight:700;margin-top:3px;}
+.macro-sub{font-size:8px;color:var(--dim);margin-top:3px;}
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
+.pill{font-size:8px;padding:3px 9px;border-radius:3px;letter-spacing:1px;}
+.pill.bull{background:#0a2e1a;color:var(--bull);border:1px solid #1a5c33;}
+.pill.bear{background:#2e0a0a;color:var(--bear);border:1px solid #5c1a1a;}
+.pill.neut{background:#1a1a0a;color:var(--neut);border:1px solid #5c4a0a;}
+.score-ring{position:relative;width:64px;height:64px;flex-shrink:0;}
+.score-ring svg{transform:rotate(-90deg);}
+.score-lbl{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:15px;font-weight:700;}
+.regime-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:10px;}
+.info-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#1a2535;border:1px solid #2a3a50;color:#4a9eff;font-size:9px;cursor:pointer;font-weight:700;position:relative;flex-shrink:0;}
+.info-icon:hover .info-tooltip{display:block;}
+.info-tooltip{display:none;position:absolute;right:20px;top:-4px;width:220px;background:#0d1117;border:1px solid #1e2530;border-radius:6px;padding:10px 12px;font-size:10px;color:#e0e0e0;font-weight:normal;letter-spacing:0;line-height:1.6;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.6);}
+.info-tooltip::before{content:'';position:absolute;right:-5px;top:8px;width:8px;height:8px;background:#0d1117;border-right:1px solid #1e2530;border-top:1px solid #1e2530;transform:rotate(45deg);}
+.legend-row{display:flex;gap:12px;margin-top:6px;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--muted);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
+.sc-sig-card{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:10px;text-align:center;}
+.sc-sig-label{font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;}
+.sc-sig-val{font-size:18px;font-weight:700;margin-bottom:4px;}
+.sc-sig-sub{font-size:9px;color:var(--muted);}
+.sc-check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #111820;}
+.sc-check-item:last-child{border:none;}
+.sc-check-box{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:var(--bg3);border:1px solid var(--border);color:var(--dim);}
+.sc-check-box.pass{background:#0a2e1a;color:var(--bull);border-color:#1a5c33;}
+.sc-check-box.fail{background:#2e0a0a;color:var(--bear);border-color:#5c1a1a;}
+.sc-check-box.warn{background:#1a1a0a;color:var(--neut);border-color:#5c4a0a;}
+.lv-row:last-child{border:none;}
+.lv-name{color:var(--muted);letter-spacing:1px;display:flex;align-items:center;gap:6px;}
+.lv-dot{width:8px;height:8px;border-radius:50%;}
+.lv-badge{font-size:8px;padding:2px 5px;border-radius:2px;}
+.lv-val{font-weight:700;}
+.url-row{display:flex;gap:6px;margin-bottom:6px;}
+.api-inp{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--blue);font-size:10px;padding:7px 10px;font-family:'Courier New',monospace;outline:none;}
+.api-inp:focus{border-color:rgba(74,158,255,0.4);}
+.mini-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;}
+.mini-wrap{display:flex;flex-direction:column;gap:3px;}
+.mini-lbl{font-size:8px;color:var(--dim);letter-spacing:1px;}
+.mini-inp{background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:11px;padding:5px 7px;font-family:'Courier New',monospace;outline:none;width:100%;}
+.action-btn{background:var(--bg3);border:1px solid var(--border);color:var(--blue);font-size:9px;padding:7px 14px;border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:1px;transition:all .2s;}
+.action-btn:hover{background:#1a2535;}
+.action-btn.red{color:var(--bear);}
+.action-btn.green{color:var(--bull);}
+.status-row{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:var(--dim);margin-top:5px;}
+.loader{display:inline-block;width:9px;height:9px;border:1px solid var(--dimmer);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.refresh-btn{background:var(--bg3);border:1px solid var(--border);color:var(--blue);font-size:9px;padding:4px 12px;border-radius:3px;cursor:pointer;letter-spacing:1px;}
+.refresh-btn:hover{background:#1a2535;}
+
+/* ══ ADMIN ════════════════════════════════════════════════ */
+.admin-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:10px;}
+.admin-table th{text-align:left;font-size:9px;color:var(--dim);letter-spacing:2px;padding:8px;border-bottom:1px solid var(--border);font-weight:normal;}
+.admin-table td{padding:8px;border-bottom:1px solid var(--border2);color:var(--muted);}
+.admin-table tr:hover td{background:var(--bg3);}
+.badge{display:inline-block;font-size:8px;padding:2px 8px;border-radius:3px;letter-spacing:1px;}
+.badge.active{background:#0a2e1a;color:var(--bull);border:1px solid #1a5c33;}
+.badge.inactive{background:#1a1a1a;color:#445;border:1px solid #2a2a2a;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LANDING PAGE ══════════════ -->
+<div class="view active" id="view-landing">
+  <nav class="land-nav">
+    <div class="land-logo">BIAS///TERMINAL</div>
+    <div class="land-nav-right">
+      <a href="https://discord.gg/cwPrFDbrA" target="_blank" class="btn-outline" style="text-decoration:none;display:flex;align-items:center;gap:5px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        DISCORD
+      </a>
+      <button class="btn-outline" onclick="showView('land-support')">SUPPORT</button>
+      <button class="btn-outline" onclick="showAuth('login')">LOG IN</button>
+      <button class="btn-primary" onclick="showView('pricing')">GET ACCESS</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-badge"><div class="hero-badge-dot"></div>LIVE · FRED + CFTC DATA</div>
+    <h1>Trade with the<br><span>Institutional Bias</span></h1>
+    <p>Real-time macro bias engine for ES and NQ futures. COT positioning, FRED macro data, composite regime scoring — before the market opens.</p>
+    <div class="hero-cta">
+      <button class="btn-hero" onclick="showView('pricing')">GET ACCESS — $34.90/mo →</button>
+      <button class="btn-hero-ghost" onclick="showView('pricing')">VIEW PRICING</button>
+    </div>
+
+    <!-- Dashboard Preview -->
+    <div class="preview-wrap">
+      <div class="preview-glow"></div>
+      <div class="preview-frame">
+        <div class="preview-bar">
+          <div class="preview-dot" style="background:#ef4444;"></div>
+          <div class="preview-dot" style="background:#f59e0b;"></div>
+          <div class="preview-dot" style="background:#22c55e;"></div>
+          <div class="preview-url">biasterminal.app/dashboard</div>
+          <div style="font-size:9px;color:#2a3040;letter-spacing:1px;">LIVE ●</div>
+        </div>
+        <div class="preview-content">
+          <div class="prev-card">
+            <div class="prev-label">BIAS SCORE · ES</div>
+            <div class="prev-val" style="color:#22c55e;">75 <span style="font-size:12px;">BULL</span></div>
+            <div class="prev-sub">+22.1% NET CONSENSUS</div>
+          </div>
+          <div class="prev-card">
+            <div class="prev-label">COT INDEX · LEV. FUNDS</div>
+            <div class="prev-val" style="color:#f59e0b;">72/100</div>
+            <div class="prev-sub">MODERATELY LONG</div>
+          </div>
+          <div class="prev-card">
+            <div class="prev-label">MACRO REGIME</div>
+            <div class="prev-val" style="color:#22c55e;font-size:14px;">RISK-ON</div>
+            <div class="prev-sub">VIX 18.4 · DXY 103.8</div>
+          </div>
+          <div class="prev-chart">
+            <div class="prev-label" style="margin-bottom:8px;">SIGNAL CONSTELLATION · BIAS × CONFIDENCE</div>
+            <div class="prev-chart-inner">
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:8px;">
+                <div style="width:12px;height:12px;border-radius:50%;background:rgba(34,197,94,0.6);border:1px solid #22c55e;"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:rgba(34,197,94,0.5);border:1px solid #22c55e;"></div>
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(34,197,94,0.7);border:1px solid #22c55e;"></div>
+                <div style="width:9px;height:9px;border-radius:50%;background:rgba(239,68,68,0.5);border:1px solid #ef4444;"></div>
+                <div style="width:11px;height:11px;border-radius:50%;background:rgba(239,68,68,0.4);border:1px solid #ef4444;"></div>
+                <div style="width:13px;height:13px;border-radius:50%;background:rgba(120,130,150,0.7);border:2px solid #aaa;"></div>
+              </div>
+              <div class="prev-chart-line"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div><div class="stat-val">12</div><div class="stat-lbl">SIGNAL MODELS</div></div>
+    <div><div class="stat-val">2</div><div class="stat-lbl">INSTRUMENTS</div></div>
+    <div><div class="stat-val">5min</div><div class="stat-lbl">DATA REFRESH</div></div>
+    <div><div class="stat-val">100%</div><div class="stat-lbl">LIVE CFTC + FRED</div></div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-label">WHAT YOU GET</div>
+    <div class="section-title">Everything you need for<br>directional bias</div>
+    <div class="section-sub">Built for serious futures traders who want institutional-grade macro context before entering any position.</div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(34,197,94,0.1);">📡</div>
+        <div class="feat-title">LIVE COT DATA</div>
+        <div class="feat-desc">Direct from CFTC every Friday. Leveraged funds, asset managers, small specs — with a 52-week COT index (0–100) that tells you when to fade or follow.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(74,158,255,0.1);">📊</div>
+        <div class="feat-title">FRED MACRO ENGINE</div>
+        <div class="feat-desc">VIX, 10Y/2Y yield curve, DXY, HY credit spreads — all live from the Federal Reserve. Weighted composite score from −1 to +1.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(139,92,246,0.1);">🎯</div>
+        <div class="feat-title">SIGNAL CONSTELLATION</div>
+        <div class="feat-desc">Visual bias × confidence chart. See exactly where each signal sits — high conviction bullish, low conviction bearish, and everything in between.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(245,158,11,0.1);">⚡</div>
+        <div class="feat-title">REGIME DETECTION</div>
+        <div class="feat-desc">Goldilocks, Reflation, Stagflation, Deflation — automatically classified. Adjusts risk multiplier, strategy mode, and stop distance accordingly.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(239,68,68,0.1);">📈</div>
+        <div class="feat-title">INTRADAY LEVELS</div>
+        <div class="feat-desc">VWAP + SD1/SD2 bands and Previous Day High/Low/Close. Connect via TradingView webhook for automatic updates, or enter manually.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(34,197,94,0.1);">🔄</div>
+        <div class="feat-title">AUTO-REFRESH</div>
+        <div class="feat-desc">Macro data refreshes every 5 minutes automatically. COT data updates every Friday after the CFTC release at 15:30 ET.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="text-align:center;padding:40px;border-top:1px solid var(--border);font-size:10px;color:var(--dim);">
+    BIAS///TERMINAL · Professional futures trading tool · Not financial advice<br>
+    <span style="margin-top:8px;display:block;">
+      <a onclick="showView('pricing')" style="cursor:pointer;">Pricing</a> ·
+      <a onclick="showAuth('login')" style="cursor:pointer;">Login</a>
+    </span>
+  </footer>
+</div>
+
+<!-- ══════════════ PRICING / PAYWALL ══════════════ -->
+<!-- ══════════════ LANDING SUPPORT ══════════════ -->
+<div class="view" id="view-land-support">
+  <nav class="land-nav">
+    <div class="land-logo">BIAS///TERMINAL</div>
+    <div class="land-nav-right">
+      <button class="btn-outline" onclick="showView('landing')">← BACK</button>
+    </div>
+  </nav>
+  <div style="max-width:520px;margin:100px auto 60px;padding:0 24px;">
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="plabel">CONTACT SUPPORT</div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.8;margin:10px 0 14px;">
+        Have a question or need help? We'll get back to you within 24 hours.
+      </div>
+      <div class="field"><label>USERNAME</label><input class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="ls-username" placeholder="Your name or username"/></div>
+      <div class="field"><label>YOUR EMAIL</label><input class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="ls-email" placeholder="your@email.com"/></div>
+      <div class="field" style="margin-bottom:0;"><label>MESSAGE</label><textarea class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;resize:vertical;min-height:110px;font-family:'Courier New',monospace;" id="ls-msg" placeholder="Describe your issue or question..."></textarea></div>
+      <button class="btn-primary" style="width:100%;margin-top:10px;padding:12px;font-size:11px;" onclick="sendLandingSupport()">SEND MESSAGE →</button>
+      <div id="ls-status" style="font-size:10px;margin-top:8px;min-height:16px;text-align:center;"></div>
+    </div>
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="plabel">CONTACT</div>
+      <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:2.4;">
+        <div>📧 <a href="mailto:support@alpha-bias.com" style="color:var(--blue);">support@alpha-bias.com</a></div>
+        <div>⏱ Response time: within 24 hours</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="plabel">COMMUNITY · DISCORD</div>
+      <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:1.8;margin-bottom:14px;">Join our community for live discussions and support.</div>
+      <a href="https://discord.gg/cwPrFDbrA" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#5865F2;color:#fff;font-size:11px;padding:12px;border-radius:4px;text-align:center;font-weight:700;letter-spacing:1px;text-decoration:none;font-family:'Courier New',monospace;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        JOIN DISCORD SERVER ↗
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PRICING ══════════════ -->
+<div class="view" id="view-pricing">
+  <nav class="land-nav">
+    <div class="land-logo">BIAS///TERMINAL</div>
+    <div class="land-nav-right">
+      <button class="btn-outline" onclick="showAuth('login')">LOG IN</button>
+    </div>
+  </nav>
+  <div class="pricing-wrap">
+    <button class="back-btn" onclick="showView('landing')">← BACK</button>
+    <div class="pricing-card">
+      <div class="pricing-badge">MOST POPULAR</div>
+      <div class="pricing-name">PRO PLAN</div>
+      <div class="pricing-price">
+        <span class="pricing-price-cur">$</span>
+        <span class="pricing-price-val" id="priceDisplay">34.90</span>
+        <span class="pricing-price-period">/ month</span>
+      </div>
+      <div class="pricing-price-orig" id="priceOrig"></div>
+      <ul class="pricing-features">
+        <li>Live FRED macro data (VIX, Yields, DXY, HY Spreads)</li>
+        <li>Weekly CFTC COT positioning for ES & NQ</li>
+        <li>Signal Constellation chart (12 models)</li>
+        <li>Composite regime score with parameters</li>
+        <li>Intraday Levels page (VWAP + SD Bands + PD levels)</li>
+        <li>TradingView webhook integration</li>
+        <li>Auto-refresh every 5 minutes</li>
+        <li>Cancel anytime</li>
+      </ul>
+
+      <div class="promo-section">
+        <div class="plabel" style="margin-bottom:8px;">PROMO CODE</div>
+        <div class="promo-row">
+          <input class="promo-inp" id="promoInput" placeholder="ENTER CODE" maxlength="20"/>
+          <button class="promo-btn" onclick="validatePromo()">APPLY</button>
+        </div>
+        <div class="promo-msg" id="promoMsg"></div>
+      </div>
+
+      <button class="checkout-btn" id="checkoutBtn" onclick="startCheckout()">
+        START SUBSCRIPTION — $34.90/mo
+      </button>
+      <div class="pricing-footer">
+        Secure payment via Stripe · Cancel anytime · No hidden fees<br>
+        Already have an account? <a onclick="showAuth('login')" style="cursor:pointer;">Log in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ AUTH (Login / Register) ══════════════ -->
+<div class="view" id="view-auth">
+  <nav class="land-nav">
+    <div class="land-logo">BIAS///TERMINAL</div>
+    <div class="land-nav-right">
+      <button class="btn-outline" onclick="showView('landing')">← BACK</button>
+    </div>
+  </nav>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">BIAS///TERMINAL</div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">LOG IN</div>
+        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">REGISTER</div>
+      </div>
+
+      <!-- Login -->
+      <div id="auth-login">
+        <div class="field"><label>EMAIL</label><input type="email" id="login-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <div class="field"><label>PASSWORD</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <button class="auth-btn" onclick="doLogin()" id="login-btn">LOG IN →</button>
+        <div class="auth-msg" id="login-msg"></div>
+      </div>
+
+      <!-- Register -->
+      <div id="auth-register" style="display:none;">
+        <div class="field"><label>USERNAME</label><input type="text" id="reg-username" placeholder="e.g. trader_pro" maxlength="30"/></div>
+        <div class="field"><label>EMAIL</label><input type="email" id="reg-email" placeholder="you@example.com"/></div>
+        <div class="field"><label>PASSWORD</label><input type="password" id="reg-pass" placeholder="Min. 8 characters"/></div>
+        <div class="field"><label>CONFIRM PASSWORD</label><input type="password" id="reg-pass2" placeholder="Repeat password" onkeydown="if(event.key==='Enter')doRegister()"/></div>
+        <button class="auth-btn" onclick="doRegister()" id="reg-btn">CREATE ACCOUNT →</button>
+        <div class="auth-msg" id="reg-msg"></div>
+      </div>
+
+      <div class="auth-footer">
+        By signing up you agree to our <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ DASHBOARD ══════════════ -->
+<div class="view" id="view-dashboard">
+  <nav class="dash-nav">
+    <div class="dash-logo">BIAS///TERMINAL</div>
+    <div class="dash-nav-tabs">
+      <button class="nav-tab active" onclick="showDashPage('bias',this)">MACRO BIAS</button>
+      <button class="nav-tab" onclick="showDashPage('session',this)">SESSION CHECK</button>
+      <button class="nav-tab" onclick="showDashPage('levels',this)">INTRADAY LEVELS</button>
+      <button class="nav-tab" onclick="showDashPage('calc',this)">POSITION CALC</button>
+      <button class="nav-tab" onclick="showDashPage('account',this)">ACCOUNT</button>
+      <button class="nav-tab" onclick="showDashPage('support',this)">SUPPORT</button>
+    </div>
+    <div class="dash-nav-right">
+      <div class="live-dot" id="navDot"></div>
+      <span id="navStatus">LOADING...</span>
+      <span id="navTime"></span>
+      <div class="user-pill"><div class="user-dot"></div><span id="navUsername">—</span></div>
+      <button class="dash-btn" onclick="doLogout()" style="color:#ef4444;">LOG OUT</button>
+      <button class="refresh-btn" onclick="loadAll()">↻</button>
+      <button class="refresh-btn" onclick="toggleFullscreen()" id="fs-btn" title="Fullscreen">⛶</button>
+    </div>
+  </nav>
+
+  <!-- BIAS PAGE -->
+  <div class="dash-page active" id="dash-bias">
+    <div class="inst-tabs">
+      <div class="itab active" onclick="setInst('ES',this)">ES · S&P 500</div>
+      <div class="itab" onclick="setInst('NQ',this)">NQ · NASDAQ 100</div>
+    </div>
+    <div class="grid-main">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="panel">
+          <div class="plabel">SIGNAL CONSTELLATION</div>
+          <div class="ptitle">Bias × Confidence · <span id="modelCount">—</span> active signals</div>
+          <div class="legend-row">
+            <div class="leg-item"><div class="leg-dot" style="background:#22c55e;"></div>BULLISH</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#ef4444;"></div>BEARISH</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#aaa;border:1px solid #ccc;"></div>CONSENSUS</div>
+          </div>
+          <div style="position:relative;height:240px;margin-top:8px;">
+            <canvas id="constellation"></canvas>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="plabel">COT DATA · CFTC TFF REPORT</div>
+          <div class="ptitle" id="cotTitle">Net Positioning · COT Index 0–100</div>
+          <div id="cotSection"><div style="color:var(--dimmer);font-size:10px;padding:8px 0;"><span class="loader"></span>Loading CFTC...</div></div>
+          <div style="margin-top:8px;font-size:9px;color:var(--dim);">Index &lt;20 → <span style="color:#22c55e;">BULL SIGNAL</span> &nbsp;|&nbsp; Index &gt;80 → <span style="color:#ef4444;">FADE SIGNAL</span></div>
+        </div>
+        <div class="panel">
+          <div class="plabel">COMPOSITE MACRO SCORE</div>
+          <div class="ptitle">Yield Curve 30% · VIX 20% · DXY 15% · HY 10% · COT 25%</div>
+          <div id="compositeSection"><div style="color:var(--dimmer);font-size:10px;"><span class="loader"></span>Computing...</div></div>
+        </div>
+        <div class="panel">
+          <div class="plabel">MACRO INDICATORS · FRED LIVE</div>
+          <div class="ptitle" id="macroUpdateTime">Loading...</div>
+          <div class="macro-g" id="macroGrid"><div style="color:var(--dimmer);grid-column:1/-1;font-size:10px;padding:6px 0;"><span class="loader"></span>Loading FRED...</div></div>
+          <div class="pills" id="signalPills"></div>
+        </div>
+      </div>
+      <div class="right-col">
+        <div class="panel">
+          <div class="plabel">REGIME</div>
+          <div id="regimeBadge"><div style="color:var(--dimmer);">—</div></div>
+          <div class="plabel">CONSENSUS</div>
+          <div class="metric-val" id="consensusVal" style="color:var(--dimmer);">—</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:3px;">NET DIR: <span id="netDir" style="color:var(--dimmer);">—</span></div>
+          <hr class="divider">
+          <div class="plabel">BIAS SCORE</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+            <div class="score-ring">
+              <svg width="64" height="64" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="26" fill="none" stroke="#1a2030" stroke-width="6"/>
+                <circle cx="32" cy="32" r="26" fill="none" stroke="#2a3040" stroke-width="6"
+                  stroke-dasharray="163.4" stroke-dashoffset="163" stroke-linecap="round" id="biasRing"/>
+              </svg>
+              <div class="score-lbl" id="biasScore" style="color:var(--dimmer);">—</div>
+            </div>
+            <div style="font-size:10px;color:var(--muted);line-height:1.7;" id="biasDesc">Loading...</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="plabel">SESSION BIAS</div>
+          <div class="sess-row"><div style="font-size:10px;color:var(--muted);">ASIA</div><div style="font-size:10px;font-weight:700;color:var(--dimmer);" id="asiaB">—</div></div>
+          <div class="sess-row"><div style="font-size:10px;color:var(--muted);">LONDON</div><div style="font-size:10px;font-weight:700;color:var(--dimmer);" id="londonB">—</div></div>
+          <div class="sess-row"><div style="font-size:10px;color:var(--muted);">NEW YORK</div><div style="font-size:10px;font-weight:700;color:var(--dimmer);" id="nyB">—</div></div>
+        </div>
+        <div class="panel">
+          <div class="plabel">REGIME PARAMS</div>
+          <div id="regimeParams"><div style="color:var(--dimmer);font-size:10px;">—</div></div>
+        </div>
+        <div class="panel">
+          <div class="plabel">DATA STATUS</div>
+          <div id="dataStatus" style="font-size:10px;color:var(--muted);line-height:2;">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SESSION CHECK PAGE -->
+  <div class="dash-page" id="dash-session">
+
+    <!-- CONFLUENCE SCORE BAR -->
+    <div class="panel" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="plabel">NY SESSION CONFLUENCE CHECK</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">How many signals align before you enter? Use as confirmation only.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="sc-score-ring" style="position:relative;width:70px;height:70px;flex-shrink:0;">
+            <svg width="70" height="70" viewBox="0 0 70 70" style="transform:rotate(-90deg);">
+              <circle cx="35" cy="35" r="28" fill="none" stroke="#1a2030" stroke-width="7"/>
+              <circle cx="35" cy="35" r="28" fill="none" stroke="#334" stroke-width="7"
+                stroke-dasharray="175.9" stroke-dashoffset="175" stroke-linecap="round" id="sc-ring"/>
+            </svg>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+              <div style="font-size:18px;font-weight:700;color:#334;" id="sc-score-num">—</div>
+              <div style="font-size:8px;color:#445;">/ 4</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:20px;font-weight:700;" id="sc-label">LOADING...</div>
+            <div style="font-size:10px;color:var(--muted);" id="sc-sublabel">Calculating signals...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signal Pills -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:14px;" id="sc-signals">
+        <div class="sc-sig-card" id="sc-macro">
+          <div class="sc-sig-label">MACRO SCORE</div>
+          <div class="sc-sig-val" id="sc-macro-val">—</div>
+          <div class="sc-sig-sub" id="sc-macro-sub">Loading...</div>
+        </div>
+        <div class="sc-sig-card" id="sc-cot">
+          <div class="sc-sig-label">COT SIGNAL</div>
+          <div class="sc-sig-val" id="sc-cot-val">—</div>
+          <div class="sc-sig-sub" id="sc-cot-sub">Loading...</div>
+        </div>
+        <div class="sc-sig-card" id="sc-vix">
+          <div class="sc-sig-label">VIX REGIME</div>
+          <div class="sc-sig-val" id="sc-vix-val">—</div>
+          <div class="sc-sig-sub" id="sc-vix-sub">Loading...</div>
+        </div>
+        <div class="sc-sig-card" id="sc-yc">
+          <div class="sc-sig-label">YIELD CURVE</div>
+          <div class="sc-sig-val" id="sc-yc-val">—</div>
+          <div class="sc-sig-sub" id="sc-yc-sub">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GEX + BIAS SIDE BY SIDE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+
+      <div class="panel">
+        <div class="plabel">GEX · ES / S&P 500 <span style="color:#334;font-size:8px;">converted from SPY</span></div>
+        <div class="ptitle" id="gex-spy-updated">FreeFlow Live · Updates every minute during NY session</div>
+        <div id="gex-spy-panel" style="margin-top:8px;">
+          <div style="color:var(--dimmer);font-size:10px;padding:8px 0;">Updates at 15:30 CEST (NY Open)</div>
+        </div>
+        <div style="font-size:9px;color:var(--dim);margin-top:8px;">
+          ▲ Positive GEX = dealers long gamma → market pinned, low vol<br>
+          ▼ Negative GEX = dealers short gamma → market explosive, high vol
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="plabel">GEX · NQ / NASDAQ 100 <span style="color:#334;font-size:8px;">converted from QQQ</span></div>
+        <div class="ptitle" id="gex-qqq-updated">FreeFlow Live · Updates every minute during NY session</div>
+        <div id="gex-qqq-panel" style="margin-top:8px;">
+          <div style="color:var(--dimmer);font-size:10px;padding:8px 0;">Updates at 15:30 CEST (NY Open)</div>
+        </div>
+        <div style="font-size:9px;color:var(--dim);margin-top:8px;">
+          Key GEX levels converted to NQ equivalent prices<br>
+          Use with COT + Macro bias as confirmation
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSION BIAS + TRADE CHECKLIST -->
+    <!-- LAYER 2: INTRADAY BIAS STATUS -->
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="plabel">INTRADAY BIAS STATUS</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;">
+          <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">MACRO BIAS</div>
+          <div style="font-size:16px;font-weight:700;" id="sc-macro-layer">—</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:3px;">Strategic direction</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;">
+          <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">SESSION REGIME</div>
+          <div style="font-size:11px;font-weight:700;" id="sc-session-regime">—</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:3px;" id="sc-session-regime-sub">—</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;">
+          <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">INTRADAY STATUS</div>
+          <div style="font-size:11px;font-weight:700;" id="sc-intraday-status">—</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:3px;" id="sc-intraday-sub">—</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:4px;border-left:3px solid var(--blue);">
+        <div style="font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:4px;">TACTICAL NOTE</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.6;" id="sc-tactical-note">Loading...</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+      <!-- NY SESSION BIAS -->
+      <div class="panel">
+        <div class="plabel">NY SESSION BIAS · 14:30 UTC / 09:30 ET</div>
+        <div style="margin-top:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+            <span style="font-size:10px;color:var(--muted);">OVERALL DIRECTION</span>
+            <span style="font-size:14px;font-weight:700;" id="sc-direction">—</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+            <span style="font-size:10px;color:var(--muted);">BIAS SCORE</span>
+            <span style="font-size:14px;font-weight:700;color:var(--blue);" id="sc-bias-score">—</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+            <span style="font-size:10px;color:var(--muted);">REGIME</span>
+            <span style="font-size:12px;font-weight:700;" id="sc-regime">—</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+            <span style="font-size:10px;color:var(--muted);">VIX</span>
+            <span style="font-size:12px;font-weight:700;color:var(--blue);" id="sc-vix-live">—</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+            <span style="font-size:10px;color:var(--muted);">DXY</span>
+            <span style="font-size:12px;font-weight:700;color:var(--blue);" id="sc-dxy-live">—</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+            <span style="font-size:10px;color:var(--muted);">ES LAST</span>
+            <span style="font-size:12px;font-weight:700;color:var(--blue);" id="sc-es-price">—</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+            <span style="font-size:10px;color:var(--muted);">NQ LAST</span>
+            <span style="font-size:12px;font-weight:700;color:var(--blue);" id="sc-nq-price">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRE-TRADE CHECKLIST -->
+      <div class="panel">
+        <div class="plabel">PRE-TRADE CHECKLIST · NY OPEN</div>
+        <div style="margin-top:10px;" id="sc-checklist">
+          <div class="sc-check-item">
+            <div class="sc-check-box" id="chk-macro">?</div>
+            <div>
+              <div style="font-size:10px;color:var(--text);">Macro Score aligned</div>
+              <div style="font-size:9px;color:var(--dim);">Score &gt; +0.3 (bull) or &lt; −0.3 (bear)</div>
+            </div>
+          </div>
+          <div class="sc-check-item">
+            <div class="sc-check-box" id="chk-cot">?</div>
+            <div>
+              <div style="font-size:10px;color:var(--text);">COT not at extreme fade</div>
+              <div style="font-size:9px;color:var(--dim);">Large Spec index not &gt;80 (fade signal)</div>
+            </div>
+          </div>
+          <div class="sc-check-item">
+            <div class="sc-check-box" id="chk-vix">?</div>
+            <div>
+              <div style="font-size:10px;color:var(--text);">VIX regime acceptable</div>
+              <div style="font-size:9px;color:var(--dim);">VIX &lt;30 (not crisis mode)</div>
+            </div>
+          </div>
+          <div class="sc-check-item">
+            <div class="sc-check-box" id="chk-yc">?</div>
+            <div>
+              <div style="font-size:10px;color:var(--text);">Yield curve not inverted</div>
+              <div style="font-size:9px;color:var(--dim);">10Y−2Y spread &gt; −0.5%</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:4px;border:1px solid var(--border);">
+            <div style="font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:8px;">TRADE RECOMMENDATION & GEX CONTEXT</div>
+            <div id="sc-recommendation" style="line-height:1.6;">Loading data...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVELS PAGE -->
+  <div class="dash-page" id="dash-levels">
+    <div class="inst-tabs">
+      <div class="itab active" onclick="setLvlInst('ES',this)">ES · S&P 500</div>
+      <div class="itab" onclick="setLvlInst('NQ',this)">NQ · NASDAQ 100</div>
+    </div>
+    <div class="grid-2col" style="margin-bottom:12px;">
+      <div class="panel">
+        <div class="plabel">VWAP + STANDARD DEVIATION BANDS</div>
+        <div class="ptitle">Enter manually or connect TradingView Webhook → updates live</div>
+        <div id="vwapLevels"></div>
+      </div>
+      <div class="panel">
+        <div class="plabel">PREVIOUS DAY LEVELS</div>
+        <div class="ptitle">PDH · PDC · PDL · Fixed daily</div>
+        <div id="pdLevels"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="plabel">PRICE POSITION</div>
+      <div id="posChart" style="padding:8px 0;min-height:60px;"></div>
+    </div>
+    <div class="panel">
+      <div class="plabel">WEBHOOK · TRADINGVIEW → DASHBOARD</div>
+      <div class="ptitle">Automatic level updates via Pine Script alert</div>
+      <div class="url-row">
+        <input class="api-inp" id="webhookUrl" placeholder="http://YOUR_SERVER:3001/levels/ES"/>
+        <button class="action-btn green" onclick="startPoll()">▶ CONNECT</button>
+        <button class="action-btn red" onclick="stopPoll()">■ STOP</button>
+      </div>
+      <div class="status-row">
+        <span id="pollStatus" style="font-size:9px;color:var(--neut);">● NOT CONNECTED</span>
+        <span id="pollTime" style="font-size:9px;color:var(--dim);"></span>
+      </div>
+      <hr class="divider">
+      <div class="plabel">MANUAL OVERRIDE</div>
+      <div class="mini-grid">
+        <div class="mini-wrap"><div class="mini-lbl">VWAP</div><input class="mini-inp" id="m_vwap" placeholder="5284.25"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">SD1+</div><input class="mini-inp" id="m_sd1u" placeholder="5298.50"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">SD1−</div><input class="mini-inp" id="m_sd1l" placeholder="5270.00"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">SD2+</div><input class="mini-inp" id="m_sd2u" placeholder="5312.75"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">SD2−</div><input class="mini-inp" id="m_sd2l" placeholder="5255.75"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">PDH</div><input class="mini-inp" id="m_pdh" placeholder="5301.00"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">PDC</div><input class="mini-inp" id="m_pdc" placeholder="5289.50"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">PDL</div><input class="mini-inp" id="m_pdl" placeholder="5258.25"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">LAST PRICE</div><input class="mini-inp" id="m_last" placeholder="5284.00"/></div>
+      </div>
+      <button class="action-btn" style="margin-top:10px;width:100%;" onclick="applyManual()">APPLY MANUAL VALUES</button>
+    </div>
+  </div>
+
+  <!-- POSITION CALCULATOR PAGE -->
+  <div class="dash-page" id="dash-calc">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:900px;">
+
+      <!-- ES CALCULATOR -->
+      <div class="panel">
+        <div class="plabel">ES · S&P 500 E-MINI</div>
+        <div class="ptitle">$50 per point · 0.25 tick = $12.50</div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px;">
+
+          <div class="field">
+            <label>ACCOUNT SIZE ($)</label>
+            <input class="mini-inp" id="es-account" type="number" value="25000" oninput="calcES()" style="width:100%;padding:9px 10px;font-size:13px;"/>
+          </div>
+          <div class="field">
+            <label>RISK PER TRADE (%)</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input class="mini-inp" id="es-risk-pct" type="number" value="1" step="0.1" min="0.1" max="10" oninput="calcES()" style="width:100%;padding:9px 10px;font-size:13px;"/>
+              <span style="font-size:11px;color:var(--muted);white-space:nowrap;" id="es-risk-dollar">$250</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>STOP LOSS (POINTS)</label>
+            <input class="mini-inp" id="es-stop" type="number" value="10" step="0.25" oninput="calcES()" style="width:100%;padding:9px 10px;font-size:13px;"/>
+          </div>
+          <div class="field">
+            <label>TAKE PROFIT (POINTS)</label>
+            <input class="mini-inp" id="es-tp" type="number" value="20" step="0.25" oninput="calcES()" style="width:100%;padding:9px 10px;font-size:13px;"/>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">CONTRACTS</span>
+              <span style="font-size:18px;font-weight:700;color:#22c55e;" id="es-contracts">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">RISK AMOUNT</span>
+              <span style="font-size:13px;font-weight:700;color:var(--blue);" id="es-risk-total">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">STOP VALUE (1 contract)</span>
+              <span style="font-size:13px;font-weight:700;color:#ef4444;" id="es-stop-val">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">PROFIT TARGET (1 contract)</span>
+              <span style="font-size:13px;font-weight:700;color:#22c55e;" id="es-profit-val">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">TOTAL PROFIT (all contracts)</span>
+              <span style="font-size:13px;font-weight:700;color:#22c55e;" id="es-profit-total">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">RISK / REWARD</span>
+              <span style="font-size:16px;font-weight:700;" id="es-rr">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;">
+              <span style="font-size:10px;color:var(--muted);">MARGIN REQUIRED (est.)</span>
+              <span style="font-size:13px;font-weight:700;color:var(--muted);" id="es-margin">—</span>
+            </div>
+          </div>
+
+          <!-- Risk Presets -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:9px;color:var(--dim);letter-spacing:1px;width:100%;">RISK PRESETS</span>
+            <button class="action-btn" style="padding:5px 10px;font-size:9px;" onclick="setRisk('es',0.5)">0.5%</button>
+            <button class="action-btn" style="padding:5px 10px;font-size:9px;" onclick="setRisk('es',1)">1%</button>
+            <button class="action-btn" style="padding:5px 10px;font-size:9px;" onclick="setRisk('es',1.5)">1.5%</button>
+            <button class="action-btn" style="padding:5px 10px;font-size:9px;" onclick="setRisk('es',2)">2%</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NQ CALCULATOR -->
+      <div class="panel">
+        <div class="plabel">NQ · NASDAQ 100 E-MINI</div>
+        <div class="ptitle">$20 per point · 0.25 tick = $5.00</div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px;">
+
+          <div class="field">
+            <label>ACCOUNT SIZE ($)</label>
+            <input class="mini-inp" id="nq-account" type="number" value="25000" oninput="calcNQ()" style="width:100%;padding:9px 10px;font-size:13px;"/>
+          </div>
+          <div class="field">
+            <label>RISK PER TRADE (%)</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input class="mini-inp" id="nq-risk-pct" type="number" value="1" step="0.1" min="0.1" max="10" oninput="calcNQ()" style="width:100%;padding:9px 10px;font-size:13px;"/>
+              <span style="font-size:11px;color:var(--muted);white-space:nowrap;" id="nq-risk-dollar">$250</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>STOP LOSS (POINTS)</label>
+            <input class="mini-inp" id="nq-stop" type="number" value="25" step="0.25" oninput="calcNQ()" style="width:100%;padding:9px 10px;font-size:13px;"/>
+          </div>
+          <div class="field">
+            <label>TAKE PROFIT (POINTS)</label>
+            <input class="mini-inp" id="nq-tp" type="number" value="50" step="0.25" oninput="calcNQ()" style="width:100%;padding:9px 10px;font-size:13px;"/>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">CONTRACTS</span>
+              <span style="font-size:18px;font-weight:700;color:#22c55e;" id="nq-contracts">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">RISK AMOUNT</span>
+              <span style="font-size:13px;font-weight:700;color:var(--blue);" id="nq-risk-total">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">STOP VALUE (1 contract)</span>
+              <span style="font-size:13px;font-weight:700;color:#ef4444;" id="nq-stop-val">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">PROFIT TARGET (1 contract)</span>
+              <span style="font-size:13px;font-weight:700;color:#22c55e;" id="nq-profit-val">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">TOTAL PROFIT (all contracts)</span>
+              <span style="font-size:13px;font-weight:700;color:#22c55e;" id="nq-profit-total">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;">
+              <span style="font-size:10px;color:var(--muted);">RISK / REWARD</span>
+              <span style="font-size:16px;font-weight:700;" id="nq-rr">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;">
+              <span style="font-size:10px;color:var(--muted);">MARGIN REQUIRED (est.)</span>
+              <span style="font-size:13px;font-weight:700;color:var(--muted);" id="nq-margin">—</span>
+            </div>
+          </div>
+
+          <!-- Risk Presets -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:9px;color:var(--dim);letter-spacing:1px;width:100%;">RISK PRESETS</span>
+            <button class="action-btn" style="padding:5px 10px;font-size:9px;" onclick="setRisk('nq',0.5)">0.5%</button>
+            <button class="action-btn" style="padding:5px 10px;font-size:9px;" onclick="setRisk('nq',1)">1%</button>
+            <button class="action-btn" style="padding:5px 10px;font-size:9px;" onclick="setRisk('nq',1.5)">1.5%</button>
+            <button class="action-btn" style="padding:5px 10px;font-size:9px;" onclick="setRisk('nq',2)">2%</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BIAS-ADJUSTED SIZING -->
+      <div class="panel" style="grid-column:1/-1;">
+        <div class="plabel">BIAS-ADJUSTED POSITION SIZING</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px;margin-bottom:12px;">
+          Based on current macro bias — adjust your risk accordingly
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;" id="bias-sizing-grid">
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center;">
+            <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">BIAS SCORE</div>
+            <div style="font-size:20px;font-weight:700;color:var(--blue);" id="calc-bias-score">—</div>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center;">
+            <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">CONFLUENCE</div>
+            <div style="font-size:14px;font-weight:700;" id="calc-confluence">—</div>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center;">
+            <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">SUGGESTED RISK</div>
+            <div style="font-size:20px;font-weight:700;color:#22c55e;" id="calc-suggested-risk">—</div>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center;">
+            <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">REGIME</div>
+            <div style="font-size:11px;font-weight:700;" id="calc-regime">—</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:4px;font-size:10px;color:var(--muted);line-height:1.7;" id="calc-note">
+          Load macro bias data to see position sizing recommendation.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ACCOUNT PAGE -->
+  <div class="dash-page" id="dash-account">
+    <div style="max-width:520px;display:flex;flex-direction:column;gap:12px;">
+
+      <div class="panel">
+        <div class="plabel">YOUR PROFILE</div>
+        <div style="margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;font-size:11px;">
+            <span style="color:var(--dim);">USERNAME</span><span id="acct-username" style="color:var(--text);">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;font-size:11px;">
+            <span style="color:var(--dim);">EMAIL</span><span id="acct-email" style="color:var(--text);">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;font-size:11px;">
+            <span style="color:var(--dim);">PLAN</span><span style="color:var(--bull);font-weight:700;">PRO · $34.90/mo</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111820;font-size:11px;">
+            <span style="color:var(--dim);">STATUS</span><span id="acct-status" class="badge active">ACTIVE</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="plabel">EDIT PROFILE</div>
+        <div style="margin-top:12px;">
+          <div class="field"><label>DISPLAY NAME</label><input class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="edit-name" placeholder="Your display name"/></div>
+          <div class="field"><label>USERNAME</label><input class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="edit-username" placeholder="trader_pro"/></div>
+          <button class="action-btn green" style="width:100%;margin-top:4px;" onclick="saveProfile()">SAVE CHANGES</button>
+          <div id="profile-msg" style="font-size:10px;margin-top:8px;min-height:16px;"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="plabel">CHANGE EMAIL</div>
+        <div style="margin-top:12px;">
+          <div class="field"><label>NEW EMAIL</label><input class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="edit-email" placeholder="newemail@example.com"/></div>
+          <button class="action-btn" style="width:100%;margin-top:4px;" onclick="changeEmail()">UPDATE EMAIL</button>
+          <div id="email-msg" style="font-size:10px;margin-top:8px;min-height:16px;"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="plabel">CHANGE PASSWORD</div>
+        <div style="margin-top:12px;">
+          <div class="field"><label>NEW PASSWORD</label><input type="password" class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="edit-pass" placeholder="Min. 8 characters"/></div>
+          <div class="field"><label>CONFIRM PASSWORD</label><input type="password" class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="edit-pass2" placeholder="Repeat password"/></div>
+          <button class="action-btn" style="width:100%;margin-top:4px;" onclick="changePassword()">UPDATE PASSWORD</button>
+          <div id="pass-msg" style="font-size:10px;margin-top:8px;min-height:16px;"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="plabel">SUBSCRIPTION</div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <button class="action-btn" onclick="openPortal()">MANAGE SUBSCRIPTION ↗</button>
+          <button class="action-btn red" onclick="doLogout()">LOG OUT</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="plabel">DATA SOURCES</div>
+        <div style="font-size:10px;color:var(--muted);line-height:2.2;margin-top:8px;">
+          <div>📡 FRED API — VIX, 10Y/2Y Yields, DXY, HY Spreads</div>
+          <div>📋 CFTC — COT Report (updated every Friday 15:30 ET)</div>
+          <div>🔄 Auto-refresh every 5 minutes</div>
+          <div>⚠️ Not financial advice. For informational purposes only.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPPORT PAGE -->
+  <div class="dash-page" id="dash-support">
+    <div style="max-width:560px;display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Contact Form -->
+      <div class="panel">
+        <div class="plabel">CONTACT SUPPORT</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.8;margin:10px 0 14px;">
+          Have a question, found a bug or need help with your account? We'll get back to you within 24 hours.
+        </div>
+        <div class="field"><label>USERNAME</label><input class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="support-username" placeholder="Your username"/></div>
+        <div class="field"><label>YOUR EMAIL</label><input class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="support-email" placeholder="your@email.com"/></div>
+        <div class="field" style="margin-bottom:0;"><label>MESSAGE</label><textarea class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;resize:vertical;min-height:110px;font-family:'Courier New',monospace;" id="support-msg" placeholder="Describe your issue or question..."></textarea></div>
+        <button class="action-btn green" style="width:100%;margin-top:10px;" onclick="sendSupport()">SEND MESSAGE →</button>
+        <div id="support-status" style="font-size:10px;margin-top:8px;min-height:16px;text-align:center;"></div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="panel">
+        <div class="plabel">CONTACT</div>
+        <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:2.4;">
+          <div>📧 <a href="mailto:support@alpha-bias.com" style="color:var(--blue);">support@alpha-bias.com</a></div>
+          <div>⏱ Response time: within 24 hours</div>
+        </div>
+      </div>
+
+      <!-- Discord Community -->
+      <div class="panel">
+        <div class="plabel">COMMUNITY · DISCORD</div>
+        <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:1.8;margin-bottom:14px;">
+          Join our Discord for live market discussions, announcements and direct support from the team.
+        </div>
+        <a href="https://discord.gg/cwPrFDbrA" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#5865F2;border:none;color:#fff;font-size:11px;padding:12px;border-radius:4px;text-align:center;font-weight:700;letter-spacing:1px;text-decoration:none;font-family:'Courier New',monospace;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+          JOIN DISCORD SERVER ↗
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script>
+// ── Supabase Init ─────────────────────────────────────────
+var SUPABASE_URL = 'https://svnmcthtxppbahwimzjx.supabase.co';
+var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2bm1jdGh0eHBwYmFod2ltemp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTU4MDgsImV4cCI6MjA5Mjg5MTgwOH0.uKSbD51DlsfQT7pgqZ7inBCdxpETcOeeZfCqFdMqvMo';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let currentUser = null, currentToken = null, hasSub = false;
+let inst = 'ES', lvlInst = 'ES', chartInst = null, pollInt = null, autoInt = null;
+let liveData = { macro: null, cot: { ES: null, NQ: null }, gex: null, prices: null, session: null };
+const lvlState = {
+  ES:{vwap:null,sd1u:null,sd1l:null,sd2u:null,sd2l:null,pdh:null,pdc:null,pdl:null,last:null},
+  NQ:{vwap:null,sd1u:null,sd1l:null,sd2u:null,sd2l:null,pdh:null,pdc:null,pdl:null,last:null}
+};
+let activePromo = null;
+
+// ── View Routing ──────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showAuth(tab = 'login') {
+  showView('auth');
+  switchAuthTab(tab);
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('auth-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+}
+
+
+// ── Auth ──────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const btn   = document.getElementById('login-btn');
+  const msg   = document.getElementById('login-msg');
+  btn.disabled = true; btn.textContent = 'LOGGING IN...';
+  msg.className = 'auth-msg'; msg.textContent = '';
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) {
+      msg.className = 'auth-msg err'; msg.textContent = error.message;
+      btn.disabled = false; btn.textContent = 'LOG IN →'; return;
+    }
+    await afterLogin(data.session);
+  } catch(e) {
+    msg.className = 'auth-msg err'; msg.textContent = 'Login failed: ' + e.message;
+    btn.disabled = false; btn.textContent = 'LOG IN →';
+  }
+}
+
+async function doRegister() {
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const btn   = document.getElementById('reg-btn');
+  const msg   = document.getElementById('reg-msg');
+
+  if (!username) { msg.className='auth-msg err'; msg.textContent='Please choose a username.'; return; }
+  if (pass !== pass2) { msg.className='auth-msg err'; msg.textContent='Passwords do not match.'; return; }
+  if (pass.length < 8) { msg.className='auth-msg err'; msg.textContent='Password must be at least 8 characters.'; return; }
+
+  btn.disabled = true; btn.textContent = 'CREATING ACCOUNT...';
+  msg.className = 'auth-msg'; msg.textContent = '';
+
+  const { data, error } = await sb.auth.signUp({
+    email, password: pass,
+    options: { data: { username, display_name: username } }
+  });
+  if (error) {
+    msg.className = 'auth-msg err'; msg.textContent = error.message;
+    btn.disabled = false; btn.textContent = 'CREATE ACCOUNT →'; return;
+  }
+  msg.className = 'auth-msg ok';
+  msg.textContent = 'Account created! Redirecting to checkout...';
+  currentUser = data.user; currentToken = data.session?.access_token;
+  setTimeout(() => showView('pricing'), 1200);
+}
+
+async function afterLogin(session) {
+  currentUser  = session.user;
+  currentToken = session.access_token;
+  const username = currentUser.user_metadata?.username || currentUser.email.split('@')[0];
+  document.getElementById('acct-email').textContent = currentUser.email;
+  document.getElementById('acct-username').textContent = username;
+  document.getElementById('navUsername').textContent = username;
+  document.getElementById('edit-username').value = username;
+  document.getElementById('edit-name').value = currentUser.user_metadata?.display_name || '';
+
+  try {
+    const r = await fetch('/api/subscription', { headers: { Authorization: 'Bearer ' + currentToken } });
+    const d = await r.json();
+    hasSub = d.active;
+  } catch(e) {
+    console.warn('Subscription check failed:', e);
+    hasSub = false;
+  }
+
+  if (!hasSub) { showView('pricing'); return; }
+  showView('dashboard');
+  loadAll();
+  autoInt = setInterval(loadAll, 300000);
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentUser = null; currentToken = null; hasSub = false;
+  clearInterval(autoInt);
+  showView('landing');
+}
+
+// ── Promo Code ────────────────────────────────────────────
+async function validatePromo() {
+  const code = document.getElementById('promoInput').value.trim();
+  const msg  = document.getElementById('promoMsg');
+  if (!code) return;
+  msg.className = 'promo-msg'; msg.textContent = 'Checking...';
+  const r = await fetch('/api/promo/validate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ code }) });
+  const d = await r.json();
+  if (!d.valid) { msg.className='promo-msg err'; msg.textContent = d.error || 'Invalid code.'; activePromo = null; resetPrice(); return; }
+
+  activePromo = d;
+  msg.className = 'promo-msg ok';
+  const base = 34.90;
+  if (d.discount_percent) {
+    const disc = (base * d.discount_percent / 100).toFixed(2);
+    const newP = (base - disc).toFixed(2);
+    msg.textContent = `✓ ${d.discount_percent}% off applied — $${disc} saved!`;
+    document.getElementById('priceDisplay').textContent = newP;
+    document.getElementById('priceOrig').textContent = `Regular price: $${base.toFixed(2)}/mo`;
+    document.getElementById('checkoutBtn').textContent = `START SUBSCRIPTION — $${newP}/mo`;
+  } else if (d.discount_amount) {
+    const newP = Math.max(0, base - d.discount_amount).toFixed(2);
+    msg.textContent = `✓ $${d.discount_amount} off applied!`;
+    document.getElementById('priceDisplay').textContent = newP;
+    document.getElementById('priceOrig').textContent = `Regular price: $${base.toFixed(2)}/mo`;
+    document.getElementById('checkoutBtn').textContent = `START SUBSCRIPTION — $${newP}/mo`;
+  }
+}
+
+function resetPrice() {
+  document.getElementById('priceDisplay').textContent = '34.90';
+  document.getElementById('priceOrig').textContent = '';
+  document.getElementById('checkoutBtn').textContent = 'START SUBSCRIPTION — $34.90/mo';
+}
+
+// ── Checkout ──────────────────────────────────────────────
+async function startCheckout() {
+  const btn = document.getElementById('checkoutBtn');
+  if (!currentToken) { showAuth('login'); return; }
+  btn.disabled = true; btn.textContent = 'REDIRECTING TO STRIPE...';
+  const r = await fetch('/api/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+currentToken },
+    body: JSON.stringify({ promoCode: activePromo?.code || null })
+  });
+  const d = await r.json();
+  if (d.url) { window.location.href = d.url; }
+  else { btn.disabled = false; btn.textContent = 'START SUBSCRIPTION — $34.90/mo'; alert(d.error || 'Error starting checkout.'); }
+}
+
+async function openPortal() {
+  const r = await fetch('/api/portal', { method:'POST', headers:{ Authorization:'Bearer '+currentToken } });
+  const d = await r.json();
+  if (d.url) window.location.href = d.url;
+}
+
+// ── Nav Status ────────────────────────────────────────────
+function setNavStatus(state, msg) {
+  const dot = document.getElementById('navDot');
+  const st  = document.getElementById('navStatus');
+  dot.className = 'live-dot' + (state==='ok' ? '' : state==='err' ? ' err' : ' wait');
+  st.textContent = msg;
+}
+function fmt(v, d=2) { return (v===null||v===undefined||isNaN(v)) ? '—' : parseFloat(v).toFixed(d); }
+
+// ── Load Data ─────────────────────────────────────────────
+async function authFetch(url) {
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + currentToken } });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+async function loadAll() {
+  if (!currentToken) return;
+  setNavStatus('wait', 'LOADING...');
+  const [macro, cot, prices, session] = await Promise.allSettled([
+    authFetch('/api/macro'),
+    authFetch('/api/cot'),
+    authFetch('/api/prices'),
+    authFetch('/api/session')
+  ]);
+  if (macro.status === 'fulfilled') liveData.macro = macro.value;
+  if (cot.status === 'fulfilled') { liveData.cot.ES = cot.value.ES; liveData.cot.NQ = cot.value.NQ; }
+  if (prices.status === 'fulfilled') liveData.prices = prices.value;
+  if (session.status === 'fulfilled') liveData.session = session.value;
+  renderBias();
+  const now = new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  document.getElementById('navTime').textContent = now + ' UTC';
+  setNavStatus(liveData.macro || liveData.cot.ES ? 'ok' : 'err', liveData.macro ? 'LIVE · '+now : 'PARTIAL DATA');
+}
+
+// ── Bias Computation ──────────────────────────────────────
+function computeBias(instrument) {
+  const m = liveData.macro, cot = liveData.cot[instrument];
+  const gex = liveData.gex?.SPY;
+  const pts = [], pills = []; let macroScore = 0, components = [];
+
+  if (m) {
+    const norm = (v, lo, hi) => v===null ? 0 : Math.max(-1, Math.min(1, (v-(lo+hi)/2)/((hi-lo)/2)));
+    const yc_s=norm(m.yc,-1,3), vix_s=norm(-(m.vix||20),-40,-10), dxy_s=norm(-(m.dxy||100),-110,-90), hy_s=norm(-(m.hy||400),-900,-200);
+    components=[
+      {name:'Yield Curve',score:yc_s, weight:25,raw:m.yc!==null?fmt(m.yc)+'%':'—'},
+      {name:'VIX',        score:vix_s,weight:18,raw:m.vix!==null?fmt(m.vix,1):'—'},
+      {name:'DXY',        score:dxy_s,weight:12,raw:m.dxy!==null?fmt(m.dxy,1):'—'},
+      {name:'HY Spread',  score:hy_s, weight:10,raw:m.hy!==null?fmt(m.hy,0)+'bp':'—'},
+    ];
+    macroScore = 0.25*yc_s + 0.18*vix_s + 0.12*dxy_s + 0.10*hy_s;
+    if(m.vix!==null){const b=m.vix<20;pts.push({x:72,y:b?55:-50,bull:b,size:10,label:'VIX'});pills.push({t:'VIX '+(m.vix<15?'LOW':m.vix<25?'NORMAL':'HIGH'),c:m.vix<20?'bull':m.vix<28?'neut':'bear'});}
+    if(m.yc!==null){const b=m.yc>0.5;pts.push({x:80,y:b?60:-40,bull:b,size:9,label:'YC'});pills.push({t:m.yc>1.5?'EXPANSION':m.yc>0?'NORMAL YC':m.yc>-0.5?'FLAT YC':'INVERTED ⚠',c:m.yc>1?'bull':m.yc>0?'neut':'bear'});}
+    if(m.dxy!==null){const b=m.dxy<103;pts.push({x:62,y:b?45:-35,bull:b,size:8,label:'DXY'});pills.push({t:'DXY '+(b?'WEAK':'STRONG'),c:b?'bull':'bear'});}
+    if(m.hy!==null){const b=m.hy<400;pts.push({x:65,y:b?38:-42,bull:b,size:8,label:'CREDIT'});pills.push({t:m.hy<300?'CREDIT TIGHT':m.hy<500?'CREDIT NORM':'CREDIT RISK',c:m.hy<400?'bull':m.hy<600?'neut':'bear'});}
+  }
+
+  // COT — 25% weight
+  if(cot){
+    const ls=cot.leveragedFunds, lsBull=ls.index<20, lsBear=ls.index>80;
+    const cotScore=lsBull?0.3:lsBear?-0.3:(ls.index-50)/50*0.2;
+    macroScore=macroScore*0.75+cotScore*0.25;
+    components.push({name:'COT Signal',score:cotScore/0.3,weight:25,raw:ls.index+'/100'});
+    pts.push({x:88,y:lsBull?72:lsBear?-72:ls.net>0?25:-25,bull:lsBull?true:lsBear?false:ls.net>0,size:12,label:'COT-LS'});
+    pts.push({x:55,y:cot.assetManagers.net>0?35:-30,bull:cot.assetManagers.net>0,size:9,label:'COT-AM'});
+    pills.push(lsBull?{t:'COT BULL SIG',c:'bull'}:lsBear?{t:'COT FADE SIG',c:'bear'}:{t:'COT NEUTRAL',c:'neut'});
+  }
+
+  // GEX + DEX + Vanna — 15% weight total (structural intraday factors)
+  if(gex && liveData.prices?.ES?.price) {
+    const esPrice = liveData.prices.ES.price;
+    const flip    = gex.gamma_flip;
+    const regime2 = (gex.net_gex_label || '').toLowerCase();
+    const callWall = gex.call_wall;
+    const putWall  = gex.put_wall;
+    const netDex   = gex.net_dex;
+    const netVanna = gex.net_vanna;
+    const vix      = liveData.macro?.vix;
+
+    let gexScore = 0;
+
+    // GEX: Gamma Flip position (structural bull/bear)
+    if(flip) gexScore += esPrice > flip ? 0.25 : -0.25;
+
+    // GEX Regime
+    if(regime2.includes('positive')) gexScore += 0.1;
+    else if(regime2.includes('negative')) gexScore -= 0.1;
+
+    // Put/Call Wall position
+    if(putWall) {
+      if(esPrice < putWall) gexScore -= 0.2;
+      else if(Math.abs(esPrice-putWall) <= 10) gexScore += 0.1;
+    }
+    if(callWall && esPrice > callWall) gexScore += 0.15;
+
+    // DEX (Delta Exposure): negative DEX = dealers net short delta = must buy on up moves = bullish
+    if(netDex !== null && netDex !== undefined) {
+      const dexScore = netDex < 0 ? 0.15 : netDex > 0 ? -0.1 : 0;
+      gexScore += dexScore;
+    }
+
+    // Vanna: VIX falling + positive Vanna = dealers buy delta = bullish
+    // VIX rising + negative Vanna = dealers sell delta = bearish
+    if(netVanna !== null && netVanna !== undefined && vix !== null) {
+      const vannaPositive = netVanna > 0;
+      // We approximate VIX direction from current level: < 15 = falling env, > 20 = rising env
+      if(vix < 15 && vannaPositive) gexScore += 0.15;  // VIX low + positive vanna = dealers must buy
+      else if(vix > 20 && !vannaPositive) gexScore -= 0.15; // VIX high + negative vanna = dealers must sell
+      else if(vix < 18 && vannaPositive) gexScore += 0.08;
+      else if(vix > 18 && !vannaPositive) gexScore -= 0.08;
+    }
+
+    gexScore = Math.max(-1, Math.min(1, gexScore));
+
+    // Build label from all 3 factors
+    const gexLabel = gexScore > 0.2 ? 'GEX+DEX+V BULL' : gexScore < -0.2 ? 'GEX+DEX+V BEAR' : 'GEX NEUTRAL';
+    const rawVal = `GEX:${regime2.includes('positive')?'POS':'NEG'} DEX:${netDex!==null?(netDex<0?'↑':'↓'):'—'} V:${netVanna!==null?(netVanna>0?'+':'-'):'—'}`;
+
+    components.push({name:'GEX+DEX+Vanna',score:gexScore,weight:15,raw:rawVal});
+    pts.push({x:45,y:+(gexScore*60).toFixed(0),bull:gexScore>0,size:9,label:'GEX'});
+    pills.push({t:gexLabel,c:gexScore>0.1?'bull':gexScore<-0.1?'bear':'neut'});
+    macroScore = macroScore*0.85 + gexScore*0.15;
+  }
+
+  const regime=macroScore>0.4?'RISK_ON':macroScore<-0.4?'RISK_OFF':'NEUTRAL';
+  pills.push({t:regime==='RISK_ON'?'RISK-ON':regime==='RISK_OFF'?'RISK-OFF':'NEUTRAL',c:regime==='RISK_ON'?'bull':regime==='RISK_OFF'?'bear':'neut'});
+  pts.push({x:50,y:+(macroScore*60).toFixed(0),bull:null,size:11,label:'CONS',consensus:true});
+  const score=Math.max(0,Math.min(100,Math.round((macroScore+1)/2*100)));
+  const consensus=(macroScore>=0?'+':'')+(macroScore*100).toFixed(1)+'%';
+  return {score,macroScore,regime,pts,pills,components,consensus};
+}
+
+// ── Render Bias ───────────────────────────────────────────
+function renderBias() {
+  const m=liveData.macro, cot=liveData.cot[inst];
+  const bias=computeBias(inst);
+  const {score,macroScore,regime,pts,pills,components,consensus}=bias;
+  const col=score>55?'#22c55e':score<45?'#ef4444':'#f59e0b';
+  const label=score>55?'BULLISH':score<45?'BEARISH':'NEUTRAL';
+  const offset=(163.4-(score/100)*163.4).toFixed(1);
+
+  document.getElementById('biasRing').setAttribute('stroke',col);
+  document.getElementById('biasRing').setAttribute('stroke-dashoffset',offset);
+  document.getElementById('biasScore').textContent=score;
+  document.getElementById('biasScore').style.color=col;
+  document.getElementById('biasDesc').innerHTML=`<strong style="color:${col};display:block;margin-bottom:3px;">${label}</strong>${macroScore>0.3?'Macro aligned. Favor direction.':macroScore<-0.3?'Risk-off. Reduce exposure.':'Mixed signals. Trade smaller.'}`;
+  document.getElementById('consensusVal').textContent=consensus;
+  document.getElementById('consensusVal').className='metric-val '+(score>55?'bull':score<45?'bear':'neut');
+  document.getElementById('netDir').textContent=label;
+  document.getElementById('netDir').style.color=col;
+  document.getElementById('modelCount').textContent=pts.length;
+
+  const rb={
+    RISK_ON:    {bg:'#0a2e1a',c:'#22c55e',t:'RISK-ON · EXPANSION'},
+    RISK_OFF:   {bg:'#2e0a0a',c:'#ef4444',t:'RISK-OFF · DEFENSIVE'},
+    NEUTRAL:    {bg:'#1a1a0a',c:'#f59e0b',t:'NEUTRAL · MIXED'}
+  };
+  const regime4Map = {
+    GOLDILOCKS:  {bg:'#0a2e1a',c:'#22c55e',t:'GOLDILOCKS — Growth ↑ Inflation ↓'},
+    REFLATION:   {bg:'#1a1500',c:'#f59e0b',t:'REFLATION — Growth ↑ Inflation ↑'},
+    STAGFLATION: {bg:'#2e0a0a',c:'#ef4444',t:'STAGFLATION — Growth ↓ Inflation ↑'},
+    DEFLATION:   {bg:'#0a0a2e',c:'#4a9eff',t:'DEFLATION — Growth ↓ Inflation ↓'},
+    NEUTRAL:     {bg:'#1a1a0a',c:'#f59e0b',t:'NEUTRAL · MIXED'}
+  };
+  const macroR4 = m?.macroRegime4 || 'NEUTRAL';
+  const r4 = regime4Map[macroR4] || regime4Map.NEUTRAL;
+  const r = rb[regime] || rb.NEUTRAL;
+  const regimeInfo = {
+    GOLDILOCKS:  'Goldilocks: Economy growing, inflation under control. Best environment for equities. Dealers buy dips, low volatility, mean reversion favored. Trade: Buy pullbacks on ES/NQ.',
+    REFLATION:   'Reflation: Economy growing but inflation rising. Momentum strategies work well. Trending markets, follow breakouts. Trade: Follow direction, avoid fading strong moves.',
+    STAGFLATION: 'Stagflation: Economy slowing with high inflation. Worst environment for equities. High volatility, unpredictable. Trade: Reduce size, trend follow only, avoid longs.',
+    DEFLATION:   'Deflation: Economy slowing, inflation falling. Bonds rally, equities under pressure. Flight to safety. Trade: Defensive, smaller size, no aggressive longs.',
+    NEUTRAL:     'Neutral: Mixed economic signals. No clear regime. Trade with reduced size and wait for clearer conditions.'
+  };
+  document.getElementById('regimeBadge').innerHTML=`
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+      <div class="regime-badge" style="background:${r4.bg};color:${r4.c};border:1px solid ${r4.c}33;margin-bottom:0;">${r4.t}</div>
+      <div class="info-icon">i<div class="info-tooltip">${regimeInfo[macroR4] || ''}</div></div>
+    </div>
+    <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">${m?.regimeDesc || ''}</div>
+    <div class="regime-badge" style="background:${r.bg};color:${r.c};border:1px solid ${r.c}33;">${r.t}</div>`;
+  // Session Bias — real data where available
+  const sess = liveData.session;
+  const sessLabel = (b) => b === 'bullish' ? 'BULL' : b === 'bearish' ? 'BEAR' : 'NEUTRAL';
+  const sessCol = (b) => b === 'bullish' ? '#22c55e' : b === 'bearish' ? '#ef4444' : '#f59e0b';
+  const asiaBias = sess?.asia?.bias || null;
+  const londonBias = sess?.london?.bias || null;
+  const asiaNChg = sess?.asia?.nikkeiChg;
+  const londonDChg = sess?.london?.daxChg;
+  const asiaEl = document.getElementById('asiaB');
+  asiaEl.textContent = asiaBias ? sessLabel(asiaBias) + (asiaNChg !== undefined ? ' (N225 '+(asiaNChg>0?'+':'')+asiaNChg+'%)' : '') : label;
+  asiaEl.style.color = asiaBias ? sessCol(asiaBias) : col;
+  const londonEl = document.getElementById('londonB');
+  londonEl.textContent = londonBias ? sessLabel(londonBias) + (londonDChg !== undefined ? ' (DAX '+(londonDChg>0?'+':'')+londonDChg+'%)' : '') : label;
+  londonEl.style.color = londonBias ? sessCol(londonBias) : col;
+  document.getElementById('nyB').textContent = label;
+  document.getElementById('nyB').style.color = col;
+
+  document.getElementById('regimeParams').innerHTML=[
+    {l:'Risk Multiplier',v:macroScore>0.3?'1.2×':macroScore<-0.3?'0.6×':'1.0×',c:macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#f59e0b'},
+    {l:'Strategy Mode',v:macroScore>0.3?'MEAN REVERSION':macroScore<-0.3?'TREND FOLLOW':'MIXED',c:'#4a9eff'},
+    {l:'Stop Multiplier',v:m?.vix?(m.vix<15?'0.8×':m.vix>30?'1.5×':'1.0×'):'—',c:'#e0e0e0'},
+    {l:'Max Leverage',v:macroScore>0.3?'2.0×':macroScore<-0.3?'1.0×':'1.5×',c:macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#f59e0b'},
+  ].map(p=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #111820;font-size:10px;"><span style="color:#445;">${p.l}</span><span style="color:${p.c};font-weight:700;">${p.v}</span></div>`).join('');
+
+  if(cot){
+    document.getElementById('cotTitle').textContent=`Net Positioning · COT Index 0–100 · As of ${cot.date}`;
+    document.getElementById('cotSection').innerHTML=[
+      {name:'Lev. Funds',g:cot.leveragedFunds},{name:'Asset Mgrs',g:cot.assetManagers},{name:'Small Spec',g:cot.smallSpec}
+    ].map(({name,g})=>{
+      const pct=Math.min(100,Math.abs(g.net)/150000*100), c=g.net>0?'#22c55e':'#ef4444', ic=g.index>80?'#ef4444':g.index<20?'#22c55e':'#f59e0b';
+      return `<div class="cot-row"><div class="cot-name">${name}</div><div class="cot-track"><div class="cot-fill" style="width:${pct}%;background:${c};"></div></div><div class="cot-val" style="color:${c}">${g.net>0?'+':''}${g.net.toLocaleString()}</div><div class="cot-idx" style="color:${ic}">${g.index}</div></div>`;
+    }).join('');
+  }
+
+  if(components.length){
+    const cc=macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#f59e0b';
+    let html=`<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;"><div style="font-size:22px;font-weight:700;color:${cc};">${macroScore>=0?'+':''}${macroScore.toFixed(2)}</div><div style="font-size:10px;color:#556;">${macroScore>0.5?'RISK-ON':macroScore<-0.5?'RISK-OFF':'NEUTRAL'}<br><span style="font-size:9px;color:#334;">−1 to +1</span></div></div>`;
+    html+=components.map(c=>{
+      const pct=Math.round((c.score+1)/2*100), cc2=c.score>0.3?'#22c55e':c.score<-0.3?'#ef4444':'#f59e0b';
+      return `<div class="comp-row"><div class="comp-lbl">${c.name} <span style="color:#334;font-size:8px;">${c.weight}%</span></div><div class="comp-track"><div class="comp-fill" style="width:${pct}%;background:${cc2};"></div></div><div class="comp-val" style="color:${cc2}">${c.score>=0?'+':''}${c.score.toFixed(2)}</div><div class="comp-raw">${c.raw}</div></div>`;
+    }).join('');
+    document.getElementById('compositeSection').innerHTML=html;
+  }
+
+  if(m){
+    const items=[
+      {name:'VIX',val:m.vix!==null?fmt(m.vix,1):'—',dir:m.vix?(m.vix<20?'down':'up'):null,note:m.vix?(m.vix<15?'Low vol · mean rev':m.vix<25?'Normal range':'Elevated · trend'):'—'},
+      {name:'10Y YIELD',val:m.t10!==null?fmt(m.t10)+'%':'—',dir:m.t10?(m.t10>4.5?'up':'down'):null,note:m.t10?(m.t10>4.5?'High · growth pressure':'Moderate'):'—'},
+      {name:'2Y YIELD',val:m.t2!==null?fmt(m.t2)+'%':'—',dir:null,note:'Fed policy proxy'},
+      {name:'YIELD CURVE',val:m.yc!==null?fmt(m.yc)+'%':'—',dir:m.yc?(m.yc>0.5?'up':m.yc<0?'bear':null):null,note:m.yc!==null?(m.yc>1.5?'Expansion':m.yc>0?'Normal':m.yc>-0.5?'Flat':'Inverted ⚠'):'—'},
+      {name:'DXY',val:m.dxy!==null?fmt(m.dxy,1):'—',dir:m.dxy?(m.dxy>104?'up':'down'):null,note:m.dxy?(m.dxy>105?'USD strong':m.dxy<100?'USD weak':'Neutral'):'—'},
+      {name:'HY SPREAD',val:m.hy!==null?fmt(m.hy,0)+'bp':'—',dir:m.hy?(m.hy>500?'up':'down'):null,note:m.hy?(m.hy<300?'Low risk':m.hy<500?'Normal':m.hy<800?'Elevated':'Crisis ⚠'):'—'},
+      {name:'INDPRO',val:m.indpro!==null?fmt(m.indpro,1):'—',dir:m.indpro?(m.indpro>100?'up':'down'):null,note:m.indpro?(m.indpro>100?'Growth expanding':'Growth contracting'):'—'},
+      {name:'CPI',val:m.cpi!==null?fmt(m.cpi,1):'—',dir:m.cpi?(m.cpi>3?'up':'down'):null,note:m.cpi?(m.cpi>4?'High inflation':m.cpi>2.5?'Elevated':'Contained'):'—'},
+    ];
+    document.getElementById('macroGrid').innerHTML=items.map(it=>{
+      const cls=it.dir==='up'?'bull':(it.dir==='down'||it.dir==='bear')?'bear':'neut';
+      const arr=it.dir==='up'?'▲':(it.dir==='down'||it.dir==='bear')?'▼':'●';
+      return `<div class="macro-item"><div class="macro-name">${it.name}</div><div class="macro-val ${it.dir?cls:'neut'}">${it.dir&&it.val!=='—'?arr+' ':''}${it.val}</div><div class="macro-sub">${it.note}</div></div>`;
+    }).join('');
+    document.getElementById('macroUpdateTime').textContent='FRED live · '+new Date(m.timestamp).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+' UTC';
+  }
+
+  document.getElementById('signalPills').innerHTML=pills.map(p=>`<div class="pill ${p.c}">${p.t}</div>`).join('');
+
+  document.getElementById('dataStatus').innerHTML=
+    `FRED: ${m?'✓ '+new Date(m.timestamp).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'✗ Not loaded'}<br>`+
+    `COT ES: ${liveData.cot.ES?'✓ '+liveData.cot.ES.date:'✗ Not loaded'}<br>`+
+    `COT NQ: ${liveData.cot.NQ?'✓ '+liveData.cot.NQ.date:'✗ Not loaded'}`;
+
+  drawConstellation(pts);
+}
+
+function setInst(i,el){inst=i;document.querySelectorAll('#dash-bias .itab').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderBias();}
+
+function drawConstellation(pts){
+  const ctx=document.getElementById('constellation').getContext('2d');
+  if(chartInst){chartInst.destroy();}
+  chartInst=new Chart(ctx,{
+    type:'bubble',
+    data:{datasets:[
+      {label:'Bullish',data:pts.filter(p=>p.bull===true).map(p=>({x:p.x,y:p.y,r:p.size,label:p.label})),backgroundColor:'rgba(34,197,94,0.3)',borderColor:'rgba(34,197,94,0.8)',borderWidth:1.5},
+      {label:'Bearish',data:pts.filter(p=>p.bull===false).map(p=>({x:p.x,y:p.y,r:p.size,label:p.label})),backgroundColor:'rgba(239,68,68,0.3)',borderColor:'rgba(239,68,68,0.8)',borderWidth:1.5},
+      {label:'Consensus',data:pts.filter(p=>p.consensus).map(p=>({x:p.x,y:p.y,r:p.size+2,label:p.label})),backgroundColor:'rgba(120,130,150,0.5)',borderColor:'rgba(200,210,220,0.9)',borderWidth:2}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d1117',borderColor:'#1e2530',borderWidth:1,titleColor:'#e0e0e0',bodyColor:'#778',callbacks:{label:c=>`${c.raw.label||''} · B:${c.raw.y>0?'+':''}${c.raw.y} C:${c.raw.x}%`}}},
+      scales:{
+        x:{min:0,max:105,title:{display:true,text:'CONFIDENCE →',color:'#445',font:{size:9,family:'Courier New'}},grid:{color:'#111820'},ticks:{color:'#445',font:{size:9},stepSize:25,callback:v=>v+'%'},border:{color:'#1e2530'}},
+        y:{min:-105,max:105,title:{display:true,text:'BIAS ↑',color:'#445',font:{size:9,family:'Courier New'}},grid:{color:c=>c.tick.value===0?'#2a3040':'#111820',lineWidth:c=>c.tick.value===0?1.5:1},ticks:{color:'#445',font:{size:9},stepSize:25},border:{color:'#1e2530'}}
+      },layout:{padding:{top:10,right:10,bottom:5,left:5}}
+    },
+    plugins:[{id:'ql',afterDraw(chart){
+      const{ctx,chartArea:{left,top,width,height}}=chart;
+      const cx=left+width/2,cy=top+height/2;
+      ctx.save();ctx.font='9px Courier New';
+      ctx.fillStyle='rgba(34,197,94,0.15)';ctx.fillText('BULLISH · LOW CONVICTION',left+6,cy-7);ctx.fillText('BULLISH · HIGH CONVICTION',cx+4,cy-7);
+      ctx.fillStyle='rgba(239,68,68,0.15)';ctx.fillText('BEARISH · LOW CONVICTION',left+6,cy+16);ctx.fillText('BEARISH · HIGH CONVICTION',cx+4,cy+16);
+      ctx.restore();
+    }}]
+  });
+}
+
+// ── Session Check ─────────────────────────────────────────
+// ── Session Check ─────────────────────────────────────────
+function renderGEXPanel(symbol, data, panelId, updatedId) {
+  const el = document.getElementById(panelId);
+  const upd = document.getElementById(updatedId);
+  if (!data) {
+    el.innerHTML = '<div style="color:var(--dimmer);font-size:10px;padding:6px 0;">No data yet — updates at 15:30, 17:00, 19:30 CEST</div>';
+    return;
+  }
+  const col = data.net_gex_label === 'positive' ? '#22c55e' : '#ef4444';
+  const arrow = data.net_gex_label === 'positive' ? '▲' : '▼';
+  const regime = data.net_gex_label === 'positive' ? 'POSITIVE GEX · LOW VOL ENV' : 'NEGATIVE GEX · HIGH VOL ENV';
+  const fmt = v => v !== null && v !== undefined ? parseFloat(v).toFixed(2) : '—';
+  const fmtB = v => {
+    if (!v) return '—';
+    const b = Math.abs(v) / 1e9;
+    return (v < 0 ? '-' : '+') + '$' + b.toFixed(2) + 'B';
+  };
+
+  upd.textContent = `FlashAlpha · Updated ${data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + ' UTC' : '—'}`;
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+      <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">REGIME</span>
+      <span style="font-size:12px;font-weight:700;color:${col};">${arrow} ${regime}</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+      <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">NET GEX</span>
+      <span style="font-size:13px;font-weight:700;color:${col};">${fmtB(data.net_gex)}</span>
+    </div>
+    ${data.net_dex !== null && data.net_dex !== undefined ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+      <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">NET DEX <span style="color:#334;">(delta exposure)</span></span>
+      <span style="font-size:13px;font-weight:700;color:${data.net_dex > 0 ? '#22c55e' : '#ef4444'};">${fmtB(data.net_dex)}</span>
+    </div>` : ''}
+    ${data.net_vanna !== null && data.net_vanna !== undefined ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+      <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">VANNA (DAG)</span>
+      <span style="font-size:13px;font-weight:700;color:${data.net_vanna > 0 ? '#22c55e' : '#ef4444'};">${fmtB(data.net_vanna)}</span>
+    </div>` : ''}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+      <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">GAMMA FLIP</span>
+      <span style="font-size:13px;font-weight:700;color:#f59e0b;">${fmt(data.gamma_flip)}</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+      <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">CALL WALL <span style="color:#334;">(resistance)</span></span>
+      <span style="font-size:13px;font-weight:700;color:#22c55e;">${fmt(data.call_wall)}</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
+      <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">PUT WALL <span style="color:#334;">(support)</span></span>
+      <span style="font-size:13px;font-weight:700;color:#ef4444;">${fmt(data.put_wall)}</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+      <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">LAST PRICE</span>
+      <span style="font-size:13px;font-weight:700;color:var(--blue);">${fmt(data.underlying_price)}</span>
+    </div>
+    <div style="margin-top:8px;padding:8px;background:var(--bg3);border-radius:4px;font-size:9px;color:var(--muted);">
+      ${data.net_gex_label === 'positive'
+        ? '✓ Dealers absorbing moves · Expect range-bound action · Mean reversion setups favored'
+        : '⚡ Dealers amplifying moves · Expect trending action · Momentum setups favored'}
+    </div>`;
+}
+
+function renderSessionCheck() {
+  const m = liveData.macro;
+  // Render GEX panels
+  renderGEXPanel('SPY', liveData.gex?.SPY, 'gex-spy-panel', 'gex-spy-updated');
+  renderGEXPanel('QQQ', liveData.gex?.QQQ, 'gex-qqq-panel', 'gex-qqq-updated');
+  const cot = liveData.cot[inst];
+  const bias = computeBias(inst);
+
+  const { score, macroScore, regime } = bias;
+  const col = score > 55 ? '#22c55e' : score < 45 ? '#ef4444' : '#f59e0b';
+  const label = score > 55 ? 'BULLISH' : score < 45 ? 'BEARISH' : 'NEUTRAL';
+
+  // ── Layer 2: Intraday Status ──────────────────────────
+  const gex = liveData.gex?.SPY;
+  const esPrice = liveData.prices?.ES?.price;
+  let intradayStatus = 'ACTIVE', intradaySub = '', tacticalNote = '', intradayCol = col;
+  let borderCol = '#4a9eff';
+
+  if (gex && esPrice) {
+    const flip = gex.gamma_flip;
+    const putWall = gex.put_wall;
+    const callWall = gex.call_wall;
+    const gexRegime = (gex.net_gex_label || '').toLowerCase();
+
+    const nearPut = putWall && esPrice > putWall && Math.abs(esPrice - putWall) <= 10;
+    const nearCall = callWall && esPrice < callWall && Math.abs(esPrice - callWall) <= 10;
+    const aboveFlip = flip ? esPrice > flip : null;
+    const belowPut = putWall && esPrice < putWall;
+    const aboveCall = callWall && esPrice > callWall;
+
+    // Determine if macro bias is "active" or "paused"
+    if (label === 'BULLISH') {
+      if (belowPut) {
+        intradayStatus = 'CAUTION — BELOW PUT WALL';
+        intradaySub = `Below put wall (${fmt(putWall)}) — support broken`;
+        intradayCol = '#ef4444';
+        borderCol = '#ef4444';
+        tacticalNote = `Macro bias is bullish but price has broken below the put wall at ${fmt(putWall)}. Dealer support has been removed — moves accelerate downward. Do NOT buy here. Wait for price to reclaim the put wall before considering longs. Bullish macro bias is intact but intraday structure is bearish.`;
+      } else if (nearCall) {
+        intradayStatus = 'PAUSED — AT RESISTANCE';
+        intradaySub = `Price near call wall (${fmt(callWall)})`;
+        intradayCol = '#f59e0b';
+        borderCol = '#f59e0b';
+        tacticalNote = `Macro bias is bullish but price is approaching the call wall at ${fmt(callWall)}. The call wall acts as a magnet but also potential resistance. Wait for price to either break through with volume or reject and find support — do not chase longs at this level.`;
+      } else if (aboveCall) {
+        intradayStatus = 'ACTIVE — BREAKOUT';
+        intradaySub = `Above call wall (${fmt(callWall)})`;
+        intradayCol = '#22c55e';
+        borderCol = '#22c55e';
+        tacticalNote = `Macro bias bullish confirmed. Price has broken above the call wall at ${fmt(callWall)} — dealers are forced to buy delta, creating momentum. Trend continuation favored. Trail stops and ride the move.`;
+      } else if (nearPut) {
+        intradayStatus = 'ACTIVE — AT SUPPORT';
+        intradaySub = `Near put wall (${fmt(putWall)})`;
+        intradayCol = '#22c55e';
+        borderCol = '#22c55e';
+        tacticalNote = `Macro bias bullish. Price testing the put wall at ${fmt(putWall)} — this is a high-probability long entry zone. Dealers buy aggressively here. Look for long entries with stop below the put wall.`;
+      } else if (aboveFlip === false) {
+        intradayStatus = 'CAUTION — BELOW FLIP';
+        intradaySub = `Below gamma flip (${fmt(flip)})`;
+        intradayCol = '#f59e0b';
+        borderCol = '#f59e0b';
+        tacticalNote = `Macro bias is bullish but price is below the gamma flip at ${fmt(flip)}. Below the flip, dealer hedging amplifies moves downward. Wait for price to reclaim the gamma flip before taking longs. Bullish bias is intact strategically but structurally bearish intraday.`;
+      } else {
+        intradayStatus = 'ACTIVE';
+        intradaySub = 'Bias aligned with structure';
+        intradayCol = '#22c55e';
+        borderCol = '#22c55e';
+        tacticalNote = `Macro bias bullish and intraday structure supportive. Buy pullbacks toward ${flip ? 'gamma flip (' + fmt(flip) + ')' : 'key support'} or put wall ${putWall ? '(' + fmt(putWall) + ')' : ''}. Avoid chasing highs.`;
+      }
+    } else if (label === 'BEARISH') {
+      if (nearPut) {
+        intradayStatus = 'PAUSED — AT SUPPORT';
+        intradaySub = `Price near put wall (${fmt(putWall)})`;
+        intradayCol = '#f59e0b';
+        borderCol = '#f59e0b';
+        tacticalNote = `Macro bias is bearish but price is near the put wall at ${fmt(putWall)}. The put wall provides strong dealer-driven support. Do not short into this level — wait for price to break below the put wall before adding bearish positions.`;
+      } else if (belowPut) {
+        intradayStatus = 'ACTIVE — BREAKDOWN';
+        intradaySub = `Below put wall (${fmt(putWall)})`;
+        intradayCol = '#ef4444';
+        borderCol = '#ef4444';
+        tacticalNote = `Macro bias bearish confirmed. Put wall at ${fmt(putWall)} has been breached — dealer support removed, selling accelerates. Sell rips, momentum favors shorts. High conviction bearish setup.`;
+      } else if (aboveFlip) {
+        intradayStatus = 'CAUTION — ABOVE FLIP';
+        intradaySub = `Above gamma flip (${fmt(flip)})`;
+        intradayCol = '#f59e0b';
+        borderCol = '#f59e0b';
+        tacticalNote = `Macro bias is bearish but price is above the gamma flip at ${fmt(flip)}. Above the flip, dealers stabilize the market — moves are dampened. Wait for price to lose the gamma flip before aggressively shorting. Bearish bias is intact strategically but intraday structure is neutral.`;
+      } else {
+        intradayStatus = 'ACTIVE';
+        intradaySub = 'Bias aligned with structure';
+        intradayCol = '#ef4444';
+        borderCol = '#ef4444';
+        tacticalNote = `Macro bias bearish and intraday structure supportive. Sell rips toward ${flip ? 'gamma flip (' + fmt(flip) + ')' : 'key resistance'} or call wall ${callWall ? '(' + fmt(callWall) + ')' : ''}. Avoid shorting into put wall support.`;
+      }
+    } else {
+      intradayStatus = 'NEUTRAL';
+      intradaySub = 'No clear directional bias';
+      intradayCol = '#f59e0b';
+      borderCol = '#f59e0b';
+      tacticalNote = `Mixed signals. Macro score is neutral — no strong directional edge. Reduce size, wait for cleaner setup. Key levels: ${flip ? 'Gamma flip ' + fmt(flip) : ''} ${callWall ? '· Call wall ' + fmt(callWall) : ''} ${putWall ? '· Put wall ' + fmt(putWall) : ''}.`;
+    }
+  } else {
+    // No GEX data — show macro only
+    intradayStatus = 'ACTIVE';
+    intradaySub = 'Based on macro only (GEX unavailable)';
+    intradayCol = col;
+    borderCol = col;
+    tacticalNote = label === 'BULLISH'
+      ? 'Macro bias bullish. GEX data not yet available for intraday context. Trade in the direction of the bias, wait for NY session GEX update.'
+      : label === 'BEARISH'
+      ? 'Macro bias bearish. GEX data not yet available for intraday context. Trade in the direction of the bias with caution.'
+      : 'Neutral macro environment. No clear directional edge. Reduce size and wait for stronger signals.';
+  }
+
+  // Update Layer 2 elements
+  const macroEl = document.getElementById('sc-macro-layer');
+  if (macroEl) { macroEl.textContent = label; macroEl.style.color = col; }
+
+  // Session Regime from GEX endpoint
+  const sessReg = liveData.gex?.sessionRegime;
+  const sessRegDesc = liveData.gex?.sessionRegimeDesc;
+  const sessRegEl = document.getElementById('sc-session-regime');
+  const sessRegSubEl = document.getElementById('sc-session-regime-sub');
+  if (sessRegEl && sessReg) {
+    const srCol = sessReg === 'MEAN REVERSION' ? '#4a9eff'
+      : sessReg === 'TRENDING' ? '#f59e0b'
+      : sessReg === 'HIGH VOL' ? '#ef4444'
+      : sessReg === 'CAUTION' ? '#ef4444'
+      : '#778';
+    sessRegEl.textContent = sessReg;
+    sessRegEl.style.color = srCol;
+    if (sessRegSubEl) sessRegSubEl.textContent = sessRegDesc || '';
+  } else if (sessRegEl) {
+    sessRegEl.textContent = 'GEX pending';
+    sessRegEl.style.color = '#334';
+  }
+
+  const statusEl = document.getElementById('sc-intraday-status');
+  if (statusEl) { statusEl.textContent = intradayStatus; statusEl.style.color = intradayCol; }
+  const subEl = document.getElementById('sc-intraday-sub');
+  if (subEl) subEl.textContent = intradaySub;
+  const noteEl = document.getElementById('sc-tactical-note');
+  if (noteEl) { noteEl.textContent = tacticalNote; }
+  const tactBox = noteEl?.parentElement;
+  if (tactBox) tactBox.style.borderLeftColor = borderCol;
+
+  // Update direction and bias
+  document.getElementById('sc-direction').textContent = label;
+  document.getElementById('sc-direction').style.color = col;
+  document.getElementById('sc-bias-score').textContent = score + '/100';
+  document.getElementById('sc-regime').textContent = regime.replace('_', '-');
+  document.getElementById('sc-regime').style.color = col;
+  document.getElementById('sc-vix-live').textContent = m?.vix ? m.vix.toFixed(1) : '—';
+  document.getElementById('sc-dxy-live').textContent = m?.dxy ? m.dxy.toFixed(1) : '—';
+
+  // Prices
+  const nqPrice = liveData.prices?.NQ?.price;
+  const esPrev  = liveData.prices?.ES?.prev_close;
+  const nqPrev  = liveData.prices?.NQ?.prev_close;
+
+  if (esPrice) {
+    const esChg = esPrev ? ((esPrice - esPrev) / esPrev * 100).toFixed(2) : null;
+    const esCol = esChg ? (parseFloat(esChg) >= 0 ? '#22c55e' : '#ef4444') : 'var(--blue)';
+    document.getElementById('sc-es-price').innerHTML = `<span style="color:${esCol}">${esPrice.toFixed(2)} ${esChg ? (parseFloat(esChg)>=0?'▲':'▼')+Math.abs(esChg)+'%' : ''}</span>`;
+  }
+  if (nqPrice) {
+    const nqChg = nqPrev ? ((nqPrice - nqPrev) / nqPrev * 100).toFixed(2) : null;
+    const nqCol = nqChg ? (parseFloat(nqChg) >= 0 ? '#22c55e' : '#ef4444') : 'var(--blue)';
+    document.getElementById('sc-nq-price').innerHTML = `<span style="color:${nqCol}">${nqPrice.toFixed(2)} ${nqChg ? (parseFloat(nqChg)>=0?'▲':'▼')+Math.abs(nqChg)+'%' : ''}</span>`;
+  }
+
+  // Signal cards
+  const macroOk = macroScore > 0.2 || macroScore < -0.2;
+  const macroDir = macroScore > 0.2 ? 'BULL' : macroScore < -0.2 ? 'BEAR' : 'NEUTRAL';
+  const macroCls = macroOk ? (macroScore > 0 ? 'bull' : 'bear') : 'neut';
+  document.getElementById('sc-macro-val').textContent = macroDir;
+  document.getElementById('sc-macro-val').className = 'sc-sig-val ' + macroCls;
+  document.getElementById('sc-macro-sub').textContent = (macroScore >= 0 ? '+' : '') + macroScore.toFixed(2) + ' composite';
+
+  const ls = cot?.leveragedFunds;
+  const cotSignal = ls ? (ls.index < 20 ? 'BULL' : ls.index > 80 ? 'FADE' : 'NEUTRAL') : '—';
+  const cotCls = ls ? (ls.index < 20 ? 'bull' : ls.index > 80 ? 'bear' : 'neut') : 'neut';
+  document.getElementById('sc-cot-val').textContent = cotSignal;
+  document.getElementById('sc-cot-val').className = 'sc-sig-val ' + cotCls;
+  document.getElementById('sc-cot-sub').textContent = ls ? 'Index: ' + ls.index + '/100' : 'No data';
+
+  const vix = m?.vix;
+  const vixSignal = vix ? (vix < 15 ? 'LOW' : vix < 25 ? 'NORMAL' : vix < 35 ? 'HIGH' : 'EXTREME') : '—';
+  const vixCls = vix ? (vix < 20 ? 'bull' : vix < 30 ? 'neut' : 'bear') : 'neut';
+  document.getElementById('sc-vix-val').textContent = vixSignal;
+  document.getElementById('sc-vix-val').className = 'sc-sig-val ' + vixCls;
+  document.getElementById('sc-vix-sub').textContent = vix ? vix.toFixed(1) : 'No data';
+
+  const yc = m?.yc;
+  const ycSignal = yc !== null && yc !== undefined ? (yc > 1 ? 'NORMAL' : yc > 0 ? 'FLAT' : 'INVERTED') : '—';
+  const ycCls = yc !== null && yc !== undefined ? (yc > 0.5 ? 'bull' : yc > 0 ? 'neut' : 'bear') : 'neut';
+  document.getElementById('sc-yc-val').textContent = ycSignal;
+  document.getElementById('sc-yc-val').className = 'sc-sig-val ' + ycCls;
+  document.getElementById('sc-yc-sub').textContent = yc !== null && yc !== undefined ? yc.toFixed(2) + '%' : 'No data';
+
+  // Confluence score
+  let confluenceScore = 0;
+  const checks = [];
+
+  // Check 1: Macro aligned
+  const macroAligned = Math.abs(macroScore) > 0.2;
+  checks.push(macroAligned);
+  setCheck('chk-macro', macroAligned ? 'pass' : 'fail', macroAligned ? '✓' : '✗');
+
+  // Check 2: COT not at fade extreme
+  const cotOk = !ls || ls.index <= 80;
+  checks.push(cotOk);
+  setCheck('chk-cot', cotOk ? 'pass' : 'fail', cotOk ? '✓' : '✗');
+
+  // Check 3: VIX < 30
+  const vixOk = !vix || vix < 30;
+  checks.push(vixOk);
+  setCheck('chk-vix', vixOk ? 'pass' : vix < 35 ? 'warn' : 'fail', vixOk ? '✓' : vix < 35 ? '!' : '✗');
+
+  // Check 4: Yield curve not deeply inverted
+  const ycOk = yc === null || yc === undefined || yc > -0.5;
+  checks.push(ycOk);
+  setCheck('chk-yc', ycOk ? 'pass' : 'warn', ycOk ? '✓' : '!');
+
+  confluenceScore = checks.filter(Boolean).length;
+
+  // Update score ring
+  const pct = confluenceScore / 4;
+  const ringCol = confluenceScore >= 3 ? '#22c55e' : confluenceScore >= 2 ? '#f59e0b' : '#ef4444';
+  const offset = 175.9 - (pct * 175.9);
+  document.getElementById('sc-ring').setAttribute('stroke', ringCol);
+  document.getElementById('sc-ring').setAttribute('stroke-dashoffset', offset.toFixed(1));
+  document.getElementById('sc-score-num').textContent = confluenceScore;
+  document.getElementById('sc-score-num').style.color = ringCol;
+
+  const scoreLabel = confluenceScore === 4 ? 'HIGH CONFLUENCE' : confluenceScore === 3 ? 'GOOD SETUP' : confluenceScore === 2 ? 'MIXED SIGNALS' : 'LOW CONFLUENCE';
+  const scoreSub = confluenceScore >= 3 ? 'Signals aligned — look for entry' : confluenceScore === 2 ? 'Wait for better setup or reduce size' : 'Avoid trading — signals conflicted';
+  document.getElementById('sc-label').textContent = scoreLabel;
+  document.getElementById('sc-label').style.color = ringCol;
+  document.getElementById('sc-sublabel').textContent = scoreSub;
+
+  // ── Smart GEX + Price Analysis ─────────────────────────
+  const rec = document.getElementById('sc-recommendation');
+
+  const esGex   = liveData.gex?.SPY;
+  const nqGex   = liveData.gex?.QQQ;
+
+  let gexLines = [];
+
+  if (esGex && esPrice) {
+    const flip     = esGex.gamma_flip;
+    const callWall = esGex.call_wall;
+    const putWall  = esGex.put_wall;
+    const regime   = (esGex.net_gex_label || '').toLowerCase();
+
+    const aboveFlip    = flip     ? esPrice > flip     : null;
+    const nearCall     = callWall ? (esPrice < callWall && Math.abs(esPrice - callWall) <= 10) : false;
+    const nearPut      = putWall  ? (esPrice > putWall && Math.abs(esPrice - putWall)  <= 10) : false;
+    const atFlip       = flip     ? Math.abs(esPrice - flip)     <= 5 : false;
+    const aboveCall    = callWall ? esPrice > callWall : false;
+    const belowPut     = putWall  ? esPrice < putWall  : false;
+    const betweenWalls = callWall && putWall ? esPrice < callWall && esPrice > putWall : false;
+
+    // GEX Regime
+    if (regime.includes('positive')) {
+      gexLines.push('📌 GEX POSITIVE — Dealers long gamma → market pinned, reversions favored');
+    } else if (regime.includes('negative')) {
+      gexLines.push('⚡ GEX NEGATIVE — Dealers short gamma → moves accelerate, trending favored');
+    }
+
+    // Gamma Flip
+    if (atFlip) {
+      gexLines.push(`🔀 AT GAMMA FLIP (${fmt(flip)}) — Key inflection zone, direction unclear. Wait for break + confirm`);
+    } else if (aboveFlip) {
+      gexLines.push(`✅ Above gamma flip (${fmt(flip)}) — Bullish structural. Dealers support dips`);
+    } else if (aboveFlip === false) {
+      gexLines.push(`🔻 Below gamma flip (${fmt(flip)}) — Bearish structural. Dealers amplify selling`);
+    }
+
+    // Call Wall — Magnet from below, Resistance from above
+    if (aboveCall && callWall) {
+      gexLines.push(`🚀 ABOVE CALL WALL (${fmt(callWall)}) — Resistance broken. Dealers forced to buy delta → strong momentum move upward. Ride trend, trail stops`);
+    } else if (nearCall && callWall) {
+      const dist = (callWall - esPrice).toFixed(0);
+      gexLines.push(`🧲 NEAR CALL WALL (${fmt(callWall)}, +${dist} pts) — Acting as magnet pulling price higher. Once reached expect either: slow grind through with momentum OR sharp rejection. Do not chase — wait for reaction at the wall`);
+    } else if (callWall && esPrice < callWall) {
+      const dist = (callWall - esPrice).toFixed(0);
+      gexLines.push(`Call wall ${fmt(callWall)} (+${dist} pts above) — Upside target. Price attracted toward it in positive GEX`);
+    }
+
+    if (belowPut && putWall) {
+      gexLines.push(`🚨 BELOW PUT WALL (${fmt(putWall)}) — Put wall breached. Dealer hedging support removed, downside accelerates. Avoid longs until price reclaims the put wall`);
+    } else if (nearPut && putWall) {
+      const dist = (esPrice - putWall).toFixed(0);
+      gexLines.push(`🛡️ NEAR PUT WALL (${fmt(putWall)}, -${dist} pts) — Put wall acting as strong support. Dealers buy aggressively at this level. High probability bounce — favored long entry with stop below the put wall`);
+    } else if (putWall && esPrice > putWall) {
+      const dist = (esPrice - putWall).toFixed(0);
+      gexLines.push(`Put wall ${fmt(putWall)} (-${dist} pts below) — Put wall provides strong dealer-driven support if tested`);
+    }
+
+    // Special combinations
+    if (betweenWalls && regime.includes('positive')) {
+      gexLines.push('📎 Pinned between walls in positive GEX → tight range likely. Fade extremes. Avoid chasing breakouts without volume');
+    }
+    if (nearCall && macroScore > 0.2) {
+      gexLines.push('💡 Bullish macro + near call wall → if bias holds, wall may act as launchpad for breakout. Watch volume — confirm before adding size');
+    }
+    if (nearCall && macroScore < -0.2) {
+      gexLines.push('⚠️ Bearish macro + near call wall → resistance reinforced by both GEX and macro. High probability rejection zone — look for short entries');
+    }
+    if (nearPut && macroScore < -0.2) {
+      gexLines.push('💡 Bearish macro + near put wall → floor may hold short term but bias is down. Sell bounces from put wall, floor likely breaks eventually');
+    }
+    if (nearPut && macroScore > 0.2) {
+      gexLines.push('💡 Bullish macro + near put wall → strong entry zone. GEX floor + bullish bias = high probability bounce. Look for longs with tight stop below wall');
+    }
+    if (aboveFlip && regime.includes('positive') && betweenWalls) {
+      gexLines.push('✅ Ideal bullish setup: above flip, positive GEX, between walls → mean reversion to call wall favored. Buy dips');
+    }
+    if (!aboveFlip && regime.includes('negative')) {
+      gexLines.push('⚡ Double bearish GEX: below flip + negative regime → moves amplified to downside. Reduce long exposure');
+    }
+  }
+
+  // ── Main Recommendation ────────────────────────────────
+  let mainRec = '', mainCol = '#f59e0b';
+  const putRef  = esGex?.put_wall  ? ` toward put wall (${fmt(esGex.put_wall)})`  : ' on pullbacks';
+  const callRef = esGex?.call_wall ? ` toward call wall (${fmt(esGex.call_wall)})` : ' on rips';
+  const flipRef = esGex?.gamma_flip ? ` / gamma flip (${fmt(esGex.gamma_flip)})` : '';
+
+  if (confluenceScore >= 3 && macroScore > 0.2) {
+    mainRec = `→ FAVOR LONGS — Buy pullbacks${putRef}${flipRef}`;
+    mainCol = '#22c55e';
+  } else if (confluenceScore >= 3 && macroScore < -0.2) {
+    mainRec = `→ FAVOR SHORTS — Sell rips${callRef}${flipRef}`;
+    mainCol = '#ef4444';
+  } else if (confluenceScore === 2) {
+    mainRec = '→ REDUCE SIZE — Mixed signals. Wait for cleaner setup near key GEX level';
+    mainCol = '#f59e0b';
+  } else {
+    mainRec = '→ STAND ASIDE — Signals conflicted. No clear edge. Wait for alignment';
+    mainCol = '#ef4444';
+  }
+
+  // Render
+  const allLines = [mainRec, ...gexLines];
+  rec.innerHTML = allLines.map((line, i) => {
+    const col = i === 0 ? mainCol : '#778';
+    const size = i === 0 ? '12px' : '10px';
+    return `<div style="color:${col};font-size:${size};margin-bottom:5px;line-height:1.5;">${line}</div>`;
+  }).join('');
+}
+
+function setCheck(id, cls, symbol) {
+  const el = document.getElementById(id);
+  el.className = 'sc-check-box ' + cls;
+  el.textContent = symbol;
+}
+
+// ── Session Page trigger ──────────────────────────────────
+async function showDashPage(page, el) {
+  document.querySelectorAll('.dash-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('dash-' + page).classList.add('active');
+  el.classList.add('active');
+  if (page === 'calc') { calcES(); calcNQ(); }
+  if (page === 'session') {
+    // Fetch latest GEX from server cache (server controls when it updates)
+    try {
+      const gex = await authFetch('/api/gex');
+      liveData.gex = gex;
+    } catch(e) { console.warn('GEX fetch error:', e); }
+    renderSessionCheck();
+  }
+}
+
+// ── Levels ────────────────────────────────────────────────
+function setLvlInst(i,el){lvlInst=i;document.querySelectorAll('#dash-levels .itab').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderLevels();}
+
+function renderLevels(){
+  const d=lvlState[lvlInst];
+  document.getElementById('vwapLevels').innerHTML=[
+    {n:'VWAP',v:d.vwap,c:'#4a9eff',b:null},{n:'SD1+',v:d.sd1u,c:'#22c55e',b:'+1σ'},{n:'SD1−',v:d.sd1l,c:'#22c55e',b:'−1σ'},
+    {n:'SD2+',v:d.sd2u,c:'#f59e0b',b:'+2σ'},{n:'SD2−',v:d.sd2l,c:'#f59e0b',b:'−2σ'},
+  ].map(r=>`<div class="lv-row"><div class="lv-name"><div class="lv-dot" style="background:${r.c};"></div>${r.n}${r.b?`<span class="lv-badge" style="background:${r.c}18;color:${r.c};border:1px solid ${r.c}33;">${r.b}</span>`:''}</div><div class="lv-val" style="color:${r.v!==null?r.c:'#334'}">${fmt(r.v)}</div></div>`).join('');
+
+  document.getElementById('pdLevels').innerHTML=[
+    {n:'PREV DAY HIGH',v:d.pdh,c:'#22c55e'},{n:'PREV DAY CLOSE',v:d.pdc,c:'#778'},{n:'PREV DAY LOW',v:d.pdl,c:'#ef4444'},
+  ].map(r=>`<div class="lv-row"><div class="lv-name"><div class="lv-dot" style="background:${r.c};"></div>${r.n}</div><div class="lv-val" style="color:${r.v!==null?r.c:'#334'}">${fmt(r.v)}</div></div>`).join('');
+
+  const el=document.getElementById('posChart');
+  if(!d.vwap||!d.sd2u||!d.sd2l){el.innerHTML='<div style="color:#334;font-size:10px;padding:6px 0;">Enter level data to render chart.</div>';return;}
+  const lo=d.sd2l,hi=d.sd2u,range=hi-lo,last=d.last||d.vwap;
+  const pct=v=>Math.min(100,Math.max(0,((v-lo)/range*100))).toFixed(1);
+  const allLvl=[{l:'SD2+',v:d.sd2u,c:'#f59e0b'},{l:'PDH',v:d.pdh,c:'#22c55e88'},{l:'SD1+',v:d.sd1u,c:'#22c55e'},{l:'PDC',v:d.pdc,c:'#778'},{l:'VWAP',v:d.vwap,c:'#4a9eff'},{l:'PDL',v:d.pdl,c:'#ef444488'},{l:'SD1−',v:d.sd1l,c:'#22c55e'},{l:'SD2−',v:d.sd2l,c:'#f59e0b'}].filter(x=>x.v!==null).sort((a,b)=>b.v-a.v);
+  el.innerHTML=`<div style="position:relative;height:22px;background:#111820;border-radius:3px;margin-bottom:12px;overflow:visible;">${allLvl.map(l=>`<div style="position:absolute;left:${pct(l.v)}%;top:0;width:1px;height:100%;background:${l.c};opacity:.9;"></div>`).join('')}<div style="position:absolute;left:${pct(last)}%;top:-4px;width:2px;height:30px;background:#fff;border-radius:2px;z-index:2;"></div><div style="position:absolute;left:calc(${pct(last)}% + 4px);top:-14px;font-size:9px;color:#fff;white-space:nowrap;">${fmt(last)}</div></div><div style="display:flex;flex-wrap:wrap;gap:10px;">${allLvl.map(l=>`<div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#556;"><div style="width:7px;height:7px;border-radius:50%;background:${l.c};"></div>${l.l} <span style="color:#e0e0e0;">${fmt(l.v)}</span></div>`).join('')}</div>`;
+}
+
+async function fetchLevels(){
+  const url=document.getElementById('webhookUrl').value.trim();if(!url)return;
+  try{const res=await fetch(url);if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();
+  const now=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  lvlState[lvlInst]={vwap:data.vwap??null,sd1u:data.sd1_upper??null,sd1l:data.sd1_lower??null,sd2u:data.sd2_upper??null,sd2l:data.sd2_lower??null,pdh:data.pdh??null,pdc:data.pdc??null,pdl:data.pdl??null,last:data.last??null};
+  document.getElementById('pollStatus').textContent='● LIVE · '+now;document.getElementById('pollStatus').style.color='#22c55e';document.getElementById('pollTime').textContent=now;renderLevels();}
+  catch(e){document.getElementById('pollStatus').textContent='● ERROR · '+e.message;document.getElementById('pollStatus').style.color='#ef4444';}
+}
+function startPoll(){stopPoll();fetchLevels();pollInt=setInterval(fetchLevels,5000);}
+function stopPoll(){if(pollInt){clearInterval(pollInt);pollInt=null;}}
+function applyManual(){
+  const g=id=>{const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v;};
+  lvlState[lvlInst]={vwap:g('m_vwap'),sd1u:g('m_sd1u'),sd1l:g('m_sd1l'),sd2u:g('m_sd2u'),sd2l:g('m_sd2l'),pdh:g('m_pdh'),pdc:g('m_pdc'),pdl:g('m_pdl'),last:g('m_last')};
+  renderLevels();
+}
+
+async function sendLandingSupport() {
+  const username = document.getElementById('ls-username').value.trim();
+  const email    = document.getElementById('ls-email').value.trim();
+  const message  = document.getElementById('ls-msg').value.trim();
+  const status   = document.getElementById('ls-status');
+  if (!email || !message) { status.style.color='#ef4444'; status.textContent='Please fill in your email and message.'; return; }
+  status.style.color='#f59e0b'; status.textContent='Sending...';
+  try {
+    const r = await fetch('/api/support', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, email, message}) });
+    const d = await r.json();
+    if (d.ok) { status.style.color='#22c55e'; status.textContent='✓ Message sent. We\'ll get back to you within 24 hours.'; document.getElementById('ls-username').value=''; document.getElementById('ls-email').value=''; document.getElementById('ls-msg').value=''; }
+    else throw new Error(d.error);
+  } catch(e) { status.style.color='#ef4444'; status.textContent='Failed. Please email support@alpha-bias.com directly.'; }
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(e => console.warn('Fullscreen error:', e));
+    document.getElementById('fs-btn').textContent = '✕';
+    document.getElementById('fs-btn').title = 'Exit Fullscreen';
+  } else {
+    document.exitFullscreen();
+    document.getElementById('fs-btn').textContent = '⛶';
+    document.getElementById('fs-btn').title = 'Fullscreen';
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    document.getElementById('fs-btn').textContent = '⛶';
+  }
+});
+
+// ── Support Form ──────────────────────────────────────────
+async function sendSupport() {
+  const username = document.getElementById('support-username').value.trim();
+  const email    = document.getElementById('support-email').value.trim();
+  const message  = document.getElementById('support-msg').value.trim();
+  const status   = document.getElementById('support-status');
+
+  if (!email || !message) {
+    status.style.color='#ef4444';
+    status.textContent='Please fill in your email and message.';
+    return;
+  }
+
+  status.style.color='#f59e0b';
+  status.textContent='Sending...';
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (currentToken) headers['Authorization'] = 'Bearer ' + currentToken;
+    const r = await fetch('/api/support', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ username: username || currentUser?.user_metadata?.username, email, message })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      status.style.color='#22c55e';
+      status.textContent='✓ Message sent. We\'ll get back to you within 24 hours.';
+      document.getElementById('support-username').value='';
+      document.getElementById('support-email').value='';
+      document.getElementById('support-msg').value='';
+    } else {
+      throw new Error(d.error || 'Failed to send');
+    }
+  } catch(e) {
+    status.style.color='#ef4444';
+    status.textContent='Failed to send. Please email support@alpha-bias.com directly.';
+  }
+}
+
+// ── Position Size Calculator ──────────────────────────────
+function calcES() {
+  const account  = parseFloat(document.getElementById('es-account').value) || 0;
+  const riskPct  = parseFloat(document.getElementById('es-risk-pct').value) || 1;
+  const stopPts  = parseFloat(document.getElementById('es-stop').value) || 0;
+  const tpPts    = parseFloat(document.getElementById('es-tp')?.value) || 0;
+  const pointVal = 50;
+  const margin   = 15000;
+
+  const riskAmt     = account * riskPct / 100;
+  const stopVal     = stopPts * pointVal;
+  const tpVal       = tpPts * pointVal;
+  const contracts   = stopVal > 0 ? Math.floor(riskAmt / stopVal) : 0;
+  const profitTotal = tpVal * contracts;
+  const rr          = stopVal > 0 && tpVal > 0 ? (tpVal / stopVal).toFixed(2) : null;
+  const rrCol       = rr ? (parseFloat(rr) >= 2 ? '#22c55e' : parseFloat(rr) >= 1.5 ? '#f59e0b' : '#ef4444') : '#778';
+
+  document.getElementById('es-risk-dollar').textContent  = '$' + riskAmt.toFixed(0);
+  document.getElementById('es-contracts').textContent    = contracts > 0 ? contracts : '0';
+  document.getElementById('es-risk-total').textContent   = '$' + riskAmt.toFixed(0);
+  document.getElementById('es-stop-val').textContent     = '$' + stopVal.toFixed(0);
+  if (document.getElementById('es-profit-val'))   document.getElementById('es-profit-val').textContent   = tpVal > 0 ? '$' + tpVal.toFixed(0) : '—';
+  if (document.getElementById('es-profit-total')) document.getElementById('es-profit-total').textContent = profitTotal > 0 ? '$' + profitTotal.toFixed(0) : '—';
+  if (document.getElementById('es-rr'))           { document.getElementById('es-rr').textContent = rr ? '1 : ' + rr : '—'; document.getElementById('es-rr').style.color = rrCol; }
+  document.getElementById('es-margin').textContent       = '$' + (contracts * margin).toLocaleString();
+  updateBiasCalc();
+}
+
+function calcNQ() {
+  const account  = parseFloat(document.getElementById('nq-account').value) || 0;
+  const riskPct  = parseFloat(document.getElementById('nq-risk-pct').value) || 1;
+  const stopPts  = parseFloat(document.getElementById('nq-stop').value) || 0;
+  const tpPts    = parseFloat(document.getElementById('nq-tp')?.value) || 0;
+  const pointVal = 20;
+  const margin   = 17000;
+
+  const riskAmt     = account * riskPct / 100;
+  const stopVal     = stopPts * pointVal;
+  const tpVal       = tpPts * pointVal;
+  const contracts   = stopVal > 0 ? Math.floor(riskAmt / stopVal) : 0;
+  const profitTotal = tpVal * contracts;
+  const rr          = stopVal > 0 && tpVal > 0 ? (tpVal / stopVal).toFixed(2) : null;
+  const rrCol       = rr ? (parseFloat(rr) >= 2 ? '#22c55e' : parseFloat(rr) >= 1.5 ? '#f59e0b' : '#ef4444') : '#778';
+
+  document.getElementById('nq-risk-dollar').textContent  = '$' + riskAmt.toFixed(0);
+  document.getElementById('nq-contracts').textContent    = contracts > 0 ? contracts : '0';
+  document.getElementById('nq-risk-total').textContent   = '$' + riskAmt.toFixed(0);
+  document.getElementById('nq-stop-val').textContent     = '$' + stopVal.toFixed(0);
+  if (document.getElementById('nq-profit-val'))   document.getElementById('nq-profit-val').textContent   = tpVal > 0 ? '$' + tpVal.toFixed(0) : '—';
+  if (document.getElementById('nq-profit-total')) document.getElementById('nq-profit-total').textContent = profitTotal > 0 ? '$' + profitTotal.toFixed(0) : '—';
+  if (document.getElementById('nq-rr'))           { document.getElementById('nq-rr').textContent = rr ? '1 : ' + rr : '—'; document.getElementById('nq-rr').style.color = rrCol; }
+  document.getElementById('nq-margin').textContent       = '$' + (contracts * margin).toLocaleString();
+  updateBiasCalc();
+}
+
+function setRisk(instrument, pct) {
+  document.getElementById(instrument + '-risk-pct').value = pct;
+  instrument === 'es' ? calcES() : calcNQ();
+}
+
+function updateBiasCalc() {
+  const bias = computeBias(inst);
+  if (!bias) return;
+  const { score, macroScore, regime } = bias;
+  const col = score > 55 ? '#22c55e' : score < 45 ? '#ef4444' : '#f59e0b';
+
+  // Suggested risk based on bias strength
+  let suggestedRisk, note;
+  if (score >= 70) {
+    suggestedRisk = '1.5–2%';
+    note = 'HIGH CONVICTION — Macro bias strongly aligned. Full position size appropriate. Trade in bias direction with confidence.';
+  } else if (score >= 60) {
+    suggestedRisk = '1–1.5%';
+    note = 'MODERATE CONVICTION — Bias is directional but not extreme. Standard sizing. Use GEX levels for entry confirmation.';
+  } else if (score >= 45) {
+    suggestedRisk = '0.5–1%';
+    note = 'LOW CONVICTION — Mixed signals. Reduce size. Wait for better setup or stronger alignment before entering.';
+  } else {
+    suggestedRisk = '0.25–0.5%';
+    note = 'CAUTION — Bias against you or conflicted. Minimum size only. Consider sitting out this session.';
+  }
+
+  document.getElementById('calc-bias-score').textContent   = score + '/100';
+  document.getElementById('calc-bias-score').style.color   = col;
+  document.getElementById('calc-confluence').textContent   = score > 60 ? 'HIGH' : score > 50 ? 'MODERATE' : 'LOW';
+  document.getElementById('calc-confluence').style.color   = col;
+  document.getElementById('calc-suggested-risk').textContent = suggestedRisk;
+  document.getElementById('calc-regime').textContent       = regime.replace('_','-');
+  document.getElementById('calc-regime').style.color       = col;
+  document.getElementById('calc-note').textContent         = note;
+}
+
+// ── Profile Management ────────────────────────────────────
+async function saveProfile() {
+  const name = document.getElementById('edit-name').value.trim();
+  const username = document.getElementById('edit-username').value.trim();
+  const msg = document.getElementById('profile-msg');
+  if (!username) { msg.style.color='#ef4444'; msg.textContent='Username cannot be empty.'; return; }
+  const { error } = await sb.auth.updateUser({ data: { display_name: name, username } });
+  if (error) { msg.style.color='#ef4444'; msg.textContent=error.message; return; }
+  msg.style.color='#22c55e'; msg.textContent='✓ Profile updated.';
+  document.getElementById('acct-username').textContent=username;
+  document.getElementById('navUsername').textContent=username;
+  setTimeout(()=>msg.textContent='',3000);
+}
+
+async function changeEmail() {
+  const email = document.getElementById('edit-email').value.trim();
+  const msg = document.getElementById('email-msg');
+  if (!email) { msg.style.color='#ef4444'; msg.textContent='Please enter a new email.'; return; }
+  const { error } = await sb.auth.updateUser({ email });
+  if (error) { msg.style.color='#ef4444'; msg.textContent=error.message; return; }
+  msg.style.color='#22c55e'; msg.textContent='✓ Confirmation sent to new email.';
+}
+
+async function changePassword() {
+  const pass = document.getElementById('edit-pass').value;
+  const pass2 = document.getElementById('edit-pass2').value;
+  const msg = document.getElementById('pass-msg');
+  if (pass !== pass2) { msg.style.color='#ef4444'; msg.textContent='Passwords do not match.'; return; }
+  if (pass.length < 8) { msg.style.color='#ef4444'; msg.textContent='Min. 8 characters.'; return; }
+  const { error } = await sb.auth.updateUser({ password: pass });
+  if (error) { msg.style.color='#ef4444'; msg.textContent=error.message; return; }
+  msg.style.color='#22c55e'; msg.textContent='✓ Password updated.';
+  document.getElementById('edit-pass').value='';
+  document.getElementById('edit-pass2').value='';
+  setTimeout(()=>msg.textContent='',3000);
+}
+
+// ── Init: check existing session ──────────────────────────
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    currentUser=session.user;currentToken=session.access_token;
+    const username = currentUser.user_metadata?.username || currentUser.email.split('@')[0];
+    document.getElementById('acct-email').textContent=currentUser.email;
+    document.getElementById('acct-username').textContent=username;
+    document.getElementById('navUsername').textContent=username;
+    document.getElementById('edit-username').value=username;
+    document.getElementById('edit-name').value=currentUser.user_metadata?.display_name||'';
+
+    // Check session_id FIRST before redirecting to pricing
+    if(window.location.search.includes('session_id')){
+      const sessionId = new URLSearchParams(window.location.search).get('session_id');
+      if(sessionId){
+        try {
+          const r = await fetch('/api/checkout/success?session_id='+sessionId, {headers:{Authorization:'Bearer '+currentToken}});
+          const d = await r.json();
+          if(d.active){
+            hasSub=true;
+            window.history.replaceState({}, '', '/dashboard');
+            showView('dashboard');loadAll();autoInt=setInterval(loadAll,300000);return;
+          }
+        } catch(e){ console.error('Checkout success error:', e); }
+      }
+    }
+
+    // Normal subscription check
+    try {
+      const r=await fetch('/api/subscription',{headers:{Authorization:'Bearer '+currentToken}});
+      const d=await r.json();hasSub=d.active;
+    } catch(e){ hasSub=false; }
+    if(hasSub){showView('dashboard');loadAll();autoInt=setInterval(loadAll,300000);}
+    else{showView('pricing');}
+  }
+})();
+</script>
+</body>
+</html>
