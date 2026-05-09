@@ -1537,7 +1537,7 @@ function drawConstellation(pts){
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d1117',borderColor:'#1e2530',borderWidth:1,titleColor:'#e0e0e0',bodyColor:'#778',callbacks:{label:c=>`${c.raw.label||''} · B:${c.raw.y>0?'+':''}${c.raw.y} C:${c.raw.x}%`}}},
       scales:{
-        x:{min:0,max:105,title:{display:true,text:'CONFIDENCE →',color:'#445',font:{size:9,family:'Courier New'}},grid:{color:'#111820'},ticks:{color:'#445',font:{size:9},stepSize:25,callback:v=>v+'%'},border:{color:'#1e2530'}},
+        x:{min:0,max:105,title:{display:true,text:'CONVICTION →',color:'#445',font:{size:9,family:'Courier New'}},grid:{color:'#111820'},ticks:{color:'#445',font:{size:9},stepSize:25,callback:v=>v+'%'},border:{color:'#1e2530'}},
         y:{min:-105,max:105,title:{display:true,text:'BIAS ↑',color:'#445',font:{size:9,family:'Courier New'}},grid:{color:c=>c.tick.value===0?'#2a3040':'#111820',lineWidth:c=>c.tick.value===0?1.5:1},ticks:{color:'#445',font:{size:9},stepSize:25},border:{color:'#1e2530'}}
       },layout:{padding:{top:10,right:10,bottom:5,left:5}}
     },
