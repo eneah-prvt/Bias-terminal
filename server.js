@@ -426,7 +426,7 @@ async function fetchYahooFutures(symbol, cacheKey) {
 function getActiveFuturesTicker(base) {
   const now = new Date();
   const month = now.getUTCMonth(); // 0-11
-  const year = now.getUTCFullYear().toString().slice(-2); // 2-digit year: ESM25 not ESM5
+  const year = now.getUTCFullYear().toString().slice(-1); // 2-digit year: ESM25 not ESM5
   // Quarterly contracts: H(Mar=2), M(Jun=5), U(Sep=8), Z(Dec=11)
   let code;
   if (month < 3) code = 'H';
