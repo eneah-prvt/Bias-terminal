@@ -593,7 +593,7 @@ const lastExp = { SPY: null, QQQ: null };
 // Daily ratio — SPY to ES and QQQ to NQ
 // Updated once per day at NY Open when both prices are fresh
 // Historical ratios: ES/SPY ~10.07-10.10, NQ/QQQ ~41.2-41.4
-const dailyRatio = { SPY: 10.085, QQQ: 41.30 };
+const dailyRatio = { SPY: 10.0655550326, QQQ: 41.3361074201 };
 
 function updateDailyRatio(symbol, ffSpot) {
   const futuresPrice = symbol === 'SPY' ? priceCache.ES?.price : priceCache.NQ?.price;
