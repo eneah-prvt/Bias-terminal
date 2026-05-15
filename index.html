@@ -1682,7 +1682,7 @@ function renderSessionCheck() {
         intradaySub = 'Bias aligned with structure';
         intradayCol = '#22c55e';
         borderCol = '#22c55e';
-        tacticalNote = `Macro bias bullish and intraday structure supportive. Buy pullbacks toward ${flip ? 'gamma flip (' + fmt(flip) + ')' : 'key support'} or put wall ${putWall ? '(' + fmt(putWall) + ')' : ''}. Avoid chasing highs.`;
+        tacticalNote = `Price is between the put wall and gamma flip — wait for price to reclaim the gamma flip before entering longs.`;
       }
     } else if (label === 'BEARISH') {
       if (nearPut) {
