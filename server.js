@@ -619,7 +619,7 @@ async function getExpiration(symbol) {
     const exps = d.expirations || [];
     const today = new Date().toISOString().split('T')[0];
     // Use today's expiration (0DTE) — matches FreeFlow website default
- const exp = '2026-06-04';
+ const exp = '2026-06-05';
     if (exp) lastExp[symbol] = exp;
     return exp || lastExp[symbol];
   } catch(e) {
