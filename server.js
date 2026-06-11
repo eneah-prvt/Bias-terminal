@@ -4,7 +4,7 @@ const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const Stripe = require('stripe');
 
-const app = express();
+const app = express(); 
 app.use(cors());
 
 // Webhook needs raw body — must be before express.json()
