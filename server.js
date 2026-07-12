@@ -792,104 +792,288 @@ console.log('GEX scheduler active: every minute on weekdays');
 
 const vwapCache = { ES: null, NQ: null, updatedAt: null };
 
-async function fetchVWAP() {
-  if (!FF_KEY) return;
+// ── Timezone helpers (DST-aware, no external lib; uses Intl) ──────────────
+// tzParts: wall-clock Y/M/D/H/M/S of a Date in a given IANA timezone.
+function tzParts(d, tz) {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  });
+  const o = {};
+  for (const p of fmt.formatToParts(d)) if (p.type !== 'literal') o[p.type] = +p.value;
+  if (o.hour === 24) o.hour = 0; // some engines emit 24 for midnight
+  return o;
+}
+// zonedToUtc: UTC ms for a given wall-clock time in a timezone (handles DST offset).
+function zonedToUtc(y, mo, da, h, mi, tz) {
+  const guess = Date.UTC(y, mo - 1, da, h, mi, 0);
+  const p = tzParts(new Date(guess), tz);
+  const back = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+  return guess - (back - guess);
+}
+// lastOccurrenceUtc: most recent instant of hh:mm in tz that is <= now.
+function lastOccurrenceUtc(now, hh, mm, tz) {
+  const p = tzParts(now, tz);
+  let t = zonedToUtc(p.year, p.month, p.day, hh, mm, tz);
+  if (now.getTime() < t) {
+    const y = tzParts(new Date(now.getTime() - 86400000), tz);
+    t = zonedToUtc(y.year, y.month, y.day, hh, mm, tz);
+  }
+  return t;
+}
+
+// ══ PROJECTX / TOPSTEPX — real ES/NQ futures bars ═════════
+// Auth (loginKey → JWT, cached ~20h) → dynamic front-month contract → 1-min bars.
+const PX_BASE     = process.env.PROJECTX_BASE || 'https://api.topstepx.com';
+const PX_USER     = process.env.PROJECTX_USERNAME;
+const PX_KEY      = process.env.PROJECTX_API_KEY;
+const PX_LIVE     = (process.env.PROJECTX_LIVE || 'true') !== 'false';
+const PX_ENABLED  = !!(PX_USER && PX_KEY);
+const PX_OVERRIDE = { ES: process.env.PROJECTX_ES_CONTRACT || null, NQ: process.env.PROJECTX_NQ_CONTRACT || null };
+const PX_ROOT     = { ES: 'EP', NQ: 'ENQ' }; // full E-minis (micros MES/MNQ excluded)
+const MONTH_CODE  = { F:1, G:2, H:3, J:4, K:5, M:6, N:7, Q:8, U:9, V:10, X:11, Z:12 };
+
+const pxAuth = { token: null, ts: 0 };
+async function pxLogin() {
+  if (!PX_ENABLED) return null;
+  if (pxAuth.token && (Date.now() - pxAuth.ts) < 20 * 60 * 60 * 1000) return pxAuth.token;
   try {
-    // Fetch 1min bars + daily candles for SPY and QQQ
+    const r = await fetch(`${PX_BASE}/api/Auth/loginKey`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ userName: PX_USER, apiKey: PX_KEY })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!d || !d.token) { console.warn('ProjectX auth failed:', (d && (d.errorMessage || d.errorCode)) || ('HTTP ' + r.status)); return null; }
+    pxAuth.token = d.token; pxAuth.ts = Date.now();
+    console.log('ProjectX auth ok (token cached ~20h)');
+    return pxAuth.token;
+  } catch (e) { console.warn('ProjectX auth error:', e.message); return null; }
+}
+
+const pxContract = { ES: { id: null, ts: 0 }, NQ: { id: null, ts: 0 } };
+// Expiry sort key from contract id "CON.F.US.<root>.<MYY>" → YYYYMM
+function pxExpKey(id) {
+  const code = (id || '').split('.')[4] || '';
+  const m = MONTH_CODE[code[0]];
+  const y = parseInt(code.slice(1), 10);
+  return (m && !isNaN(y)) ? (2000 + y) * 100 + m : null;
+}
+async function pxResolveContract(sym) {
+  if (PX_OVERRIDE[sym]) return PX_OVERRIDE[sym];
+  const c = pxContract[sym];
+  if (c.id && (Date.now() - c.ts) < 12 * 60 * 60 * 1000) return c.id; // cache 12h
+  const token = await pxLogin();
+  if (!token) return c.id;
+  try {
+    const r = await fetch(`${PX_BASE}/api/Contract/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ live: PX_LIVE, searchText: sym })
+    });
+    const d = await r.json().catch(() => ({}));
+    const list = (d && d.contracts) || [];
+    const root = PX_ROOT[sym];
+    const cands = list.filter(x => ((x.id || '').split('.')[3]) === root);
+    if (!cands.length) { console.warn(`ProjectX ${sym}: no ${root} contract in ${list.length} results`); return c.id; }
+    // Prefer an explicitly active contract, else nearest non-expired expiry, else first.
+    const nowKey = (() => { const p = tzParts(new Date(), 'America/Chicago'); return p.year * 100 + p.month; })();
+    let pick = cands.find(x => x.activeContract === true);
+    if (!pick) {
+      const withExp = cands.map(x => ({ x, e: pxExpKey(x.id) })).filter(o => o.e != null).sort((a, b) => a.e - b.e);
+      pick = ((withExp.find(o => o.e >= nowKey)) || withExp[0] || { x: cands[0] }).x;
+    }
+    if (pick && pick.id) { c.id = pick.id; c.ts = Date.now(); console.log(`ProjectX ${sym} contract: ${pick.id}`); }
+    return c.id;
+  } catch (e) { console.warn(`ProjectX ${sym} contract error:`, e.message); return c.id; }
+}
+
+async function pxBars(contractId, startISO, endISO) {
+  const token = await pxLogin();
+  if (!token || !contractId) return null;
+  try {
+    const r = await fetch(`${PX_BASE}/api/History/retrieveBars`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ contractId, live: PX_LIVE, startTime: startISO, endTime: endISO, unit: 2, unitNumber: 1, limit: 5000, includePartialBar: true })
+    });
+    if (r.status === 429) { console.warn('ProjectX retrieveBars 429 — rate-limited, skip cycle'); return null; }
+    const d = await r.json().catch(() => ({}));
+    if (!d || d.success === false) { console.warn('ProjectX retrieveBars not success:', (d && (d.errorMessage || d.errorCode))); return null; }
+    const raw = (d && d.bars) || [];
+    // Bars arrive NEWEST-FIRST → normalize + sort ascending by time.
+    return raw.map(b => ({ t: new Date(b.t).getTime(), o: b.o, h: b.h, l: b.l, c: b.c, v: b.v })).sort((a, b) => a.t - b.t);
+  } catch (e) { console.warn('ProjectX retrieveBars error:', e.message); return null; }
+}
+
+// ── VWAP σ-bands on real bars (same volume-weighted σ math as the replay tool) ──
+// hlc3 typical price; cumulative from the Globex session anchor; ±1/2/3σ (not fib).
+function computeVwapSigma(bars, anchorMs) {
+  const sess = bars.filter(b => b.t >= anchorMs);
+  if (!sess.length) return null;
+  let sumV = 0, sumPV = 0, sumP2V = 0;
+  for (const b of sess) {
+    const tp = (b.h + b.l + b.c) / 3;
+    const v = b.v || 0;
+    sumV += v; sumPV += tp * v; sumP2V += tp * tp * v;
+  }
+  if (sumV <= 0) return null;
+  const vwap = sumPV / sumV;
+  const sigma = Math.sqrt(Math.max(0, sumP2V / sumV - vwap * vwap));
+  const R = x => +x.toFixed(2);
+  return {
+    vwap: R(vwap),
+    sd1u: R(vwap + sigma), sd1l: R(vwap - sigma),
+    sd2u: R(vwap + 2 * sigma), sd2l: R(vwap - 2 * sigma),
+    sd3u: R(vwap + 3 * sigma), sd3l: R(vwap - 3 * sigma),
+    sigma: R(sigma), candles: sess.length
+  };
+}
+
+// Prior-session H/L/C (RTH 09:30–16:00 ET) + overnight H/L, from real bars.
+function computePdLevels(bars, now) {
+  const empty = { pdh: null, pdl: null, pdc: null, onHigh: null, onLow: null };
+  if (!bars || !bars.length) return empty;
+  const pad = n => String(n).padStart(2, '0');
+  const rthByDay = {};
+  for (const b of bars) {
+    const p = tzParts(new Date(b.t), 'America/New_York');
+    const mins = p.hour * 60 + p.minute;
+    if (mins >= 570 && mins < 960) { // 09:30 .. 16:00 ET
+      const key = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+      const cur = rthByDay[key] || { h: -Infinity, l: Infinity, c: null, lastT: 0 };
+      if (b.h > cur.h) cur.h = b.h;
+      if (b.l < cur.l) cur.l = b.l;
+      if (b.t >= cur.lastT) { cur.lastT = b.t; cur.c = b.c; }
+      rthByDay[key] = cur;
+    }
+  }
+  const days = Object.keys(rthByDay).sort();
+  if (!days.length) return empty;
+  const nowP = tzParts(now, 'America/New_York');
+  const todayKey = `${nowP.year}-${pad(nowP.month)}-${pad(nowP.day)}`;
+  let priorKey = null;
+  for (const k of days) if (k < todayKey) priorKey = k;
+  if (!priorKey) return empty;
+  const pd = rthByDay[priorKey];
+  const [py, pm, pdd] = priorKey.split('-').map(Number);
+  const onStart = zonedToUtc(py, pm, pdd, 16, 0, 'America/New_York');
+  const onEnd = zonedToUtc(nowP.year, nowP.month, nowP.day, 9, 30, 'America/New_York');
+  const onBars = bars.filter(b => b.t >= onStart && b.t < onEnd);
+  const onHigh = onBars.length ? Math.max(...onBars.map(b => b.h)) : null;
+  const onLow = onBars.length ? Math.min(...onBars.map(b => b.l)) : null;
+  return {
+    pdh: +pd.h.toFixed(2),
+    pdl: +pd.l.toFixed(2),
+    pdc: pd.c != null ? +pd.c.toFixed(2) : null,
+    onHigh: onHigh != null ? +onHigh.toFixed(2) : null,
+    onLow: onLow != null ? +onLow.toFixed(2) : null
+  };
+}
+
+async function fetchVWAP() {
+  const now = new Date();
+  const globexAnchor = lastOccurrenceUtc(now, 17, 0, 'America/Chicago'); // Globex open, DST-aware
+
+  // ── Primary: real ES/NQ bars from ProjectX ──
+  if (PX_ENABLED) {
+    const startISO = new Date(now.getTime() - 96 * 3600 * 1000).toISOString(); // 96h covers weekend gaps
+    const endISO = new Date(now.getTime() + 60 * 1000).toISOString();
+    for (const sym of ['ES', 'NQ']) {
+      try {
+        const cid = await pxResolveContract(sym);
+        if (!cid) { console.warn(`VWAP ${sym}: ProjectX contract unresolved`); continue; }
+        const bars = await pxBars(cid, startISO, endISO);
+        if (!bars || !bars.length) { console.warn(`VWAP ${sym}: ProjectX no bars (keeping last-good)`); continue; }
+        const bands = computeVwapSigma(bars, globexAnchor);
+        if (!bands) { console.warn(`VWAP ${sym}: no bars since session anchor`); continue; }
+        vwapCache[sym] = { bands, pd: computePdLevels(bars, now), source: 'projectx', updatedAt: new Date().toISOString() };
+        console.log(`VWAP ${sym} [ProjectX]: vwap=${bands.vwap} sigma=${bands.sigma} bars=${bands.candles}`);
+      } catch (e) { console.warn(`VWAP ${sym} ProjectX error:`, e.message); }
+    }
+    vwapCache.updatedAt = new Date().toISOString();
+  }
+
+  // ── Fallback: legacy SPY/QQQ × ratio for any instrument ProjectX didn't fill.
+  //    (This is also the sole path until PROJECTX_* env vars are set on Railway,
+  //     so the panel keeps working exactly as before until the feed is verified.)
+  const needES = !vwapCache.ES || vwapCache.ES.source !== 'projectx';
+  const needNQ = !vwapCache.NQ || vwapCache.NQ.source !== 'projectx';
+  if ((needES || needNQ) && FF_KEY) await fetchVWAPFallback(needES, needNQ, globexAnchor);
+}
+
+// Legacy VWAP: SPY/QQQ 1-min × dailyRatio. Approximation only — kept as a safety net.
+async function fetchVWAPFallback(fillES, fillNQ, anchorMs) {
+  try {
     const [spyRes, qqqRes, spyDailyRes, qqqDailyRes] = await Promise.all([
       fetch('https://www.free-flow.site/public/chart?symbol=SPY&interval=1m', { headers: { 'X-API-Key': FF_KEY } }),
       fetch('https://www.free-flow.site/public/chart?symbol=QQQ&interval=1m', { headers: { 'X-API-Key': FF_KEY } }),
       fetch('https://www.free-flow.site/public/chart?symbol=SPY&range=1mo', { headers: { 'X-API-Key': FF_KEY } }),
       fetch('https://www.free-flow.site/public/chart?symbol=QQQ&range=1mo', { headers: { 'X-API-Key': FF_KEY } })
     ]);
-
     const spyData = spyRes.ok ? await spyRes.json() : null;
     const qqqData = qqqRes.ok ? await qqqRes.json() : null;
     const spyDaily = spyDailyRes.ok ? await spyDailyRes.json() : null;
     const qqqDaily = qqqDailyRes.ok ? await qqqDailyRes.json() : null;
-
-    // Previous Day H/L/C from daily candles (last completed session)
-    const calcPDLevels = (daily, intraday, ratio) => {
-      const r = ratio || 1;
-      let pdh = null, pdl = null, pdc = null, onHigh = null, onLow = null;
-      if (daily && daily.candles && daily.candles.length >= 2) {
-        const today = new Date().toISOString().split('T')[0];
-        // last candle that is NOT today = previous completed day
-        const completed = daily.candles.filter(c => c.time !== today);
-        const pd = completed[completed.length - 1];
-        if (pd) { pdh = pd.high * r; pdl = pd.low * r; pdc = pd.close * r; }
-      }
-      // Overnight H/L: 1m candles from after prev RTH close (20:00 UTC) until today 13:30 UTC
-      if (intraday && intraday.candles && intraday.candles.length) {
-        const now = new Date();
-        const rthOpen = new Date(now); rthOpen.setUTCHours(13, 30, 0, 0);
-        const prevClose = new Date(rthOpen); prevClose.setUTCDate(prevClose.getUTCDate() - 1); prevClose.setUTCHours(20, 0, 0, 0);
-        const on = intraday.candles.filter(c => {
-          const t = typeof c.time === 'number' ? c.time * 1000 : new Date(c.time).getTime();
-          return t >= prevClose.getTime() && t < rthOpen.getTime();
-        });
-        if (on.length) {
-          onHigh = Math.max(...on.map(c => c.high)) * r;
-          onLow  = Math.min(...on.map(c => c.low)) * r;
-        }
-      }
-      return { pdh, pdl, pdc, onHigh, onLow };
-    };
-
-    const calcVWAP = (data, ratio) => {
-      if (!data || !data.candles || !data.candles.length) return null;
-      // Anchor at CME Globex session open (18:00 ET = 22:00 UTC during EDT) to match
-      // TradingView continuous-futures VWAP. Session resets daily at the globex open.
-      const now = new Date();
-      const sessionOpen = new Date(now);
-      sessionOpen.setUTCHours(22, 0, 0, 0);
-      // If we're before today's 22:00 UTC open, the active session opened yesterday at 22:00
-      if (now.getTime() < sessionOpen.getTime()) {
-        sessionOpen.setUTCDate(sessionOpen.getUTCDate() - 1);
-      }
-      const candles = data.candles.filter(c => {
-        const t = typeof c.time === 'number' ? c.time * 1000 : new Date(c.time).getTime();
-        return t >= sessionOpen.getTime();
-      });
-      if (!candles.length) return null;
-
-      let sumPV = 0, sumV = 0, sumPV2 = 0;
-      for (const c of candles) {
-        const tp = (c.high + c.low + c.close) / 3;
-        sumPV += tp * c.volume;
-        sumV  += c.volume;
-        sumPV2 += tp * tp * c.volume;
-      }
-      if (sumV === 0) return null;
-      const vwap = sumPV / sumV;
-      const variance = (sumPV2 / sumV) - (vwap * vwap);
-      const sigma = Math.sqrt(Math.max(variance, 0));
-
-      // Convert SPY/QQQ to ES/NQ via ratio
-      const r = ratio || 1;
-      return {
-        vwap:  vwap * r,
-        sd1u:  (vwap + sigma) * r,
-        sd1l:  (vwap - sigma) * r,
-        sd2u:  (vwap + 2 * sigma) * r,
-        sd2l:  (vwap - 2 * sigma) * r,
-        sd3u:  (vwap + 3 * sigma) * r,
-        sd3l:  (vwap - 3 * sigma) * r,
-        sigma: sigma * r,
-        candles: candles.length
-      };
-    };
-
     const esRatio = dailyRatio.SPY || 10.03;
     const nqRatio = dailyRatio.QQQ || 41.30;
-
-    vwapCache.ES = { bands: calcVWAP(spyData, esRatio), pd: calcPDLevels(spyDaily, spyData, esRatio), updatedAt: new Date().toISOString() };
-    vwapCache.NQ = { bands: calcVWAP(qqqData, nqRatio), pd: calcPDLevels(qqqDaily, qqqData, nqRatio), updatedAt: new Date().toISOString() };
+    if (fillES) vwapCache.ES = { bands: calcVWAPRatio(spyData, esRatio, anchorMs), pd: calcPDLevelsRatio(spyDaily, spyData, esRatio), source: 'ratio', updatedAt: new Date().toISOString() };
+    if (fillNQ) vwapCache.NQ = { bands: calcVWAPRatio(qqqData, nqRatio, anchorMs), pd: calcPDLevelsRatio(qqqDaily, qqqData, nqRatio), source: 'ratio', updatedAt: new Date().toISOString() };
     vwapCache.updatedAt = new Date().toISOString();
-    console.log('VWAP updated: ES', vwapCache.ES?.bands?.vwap?.toFixed(2), 'NQ', vwapCache.NQ?.bands?.vwap?.toFixed(2));
-  } catch(e) {
-    console.warn('VWAP fetch error:', e.message);
+    console.log(`VWAP fallback [ratio]: ES ${vwapCache.ES?.bands?.vwap?.toFixed?.(2)} NQ ${vwapCache.NQ?.bands?.vwap?.toFixed?.(2)}`);
+  } catch (e) { console.warn('VWAP fallback error:', e.message); }
+}
+
+function calcVWAPRatio(data, ratio, anchorMs) {
+  if (!data || !data.candles || !data.candles.length) return null;
+  const candles = data.candles.filter(c => {
+    const t = typeof c.time === 'number' ? c.time * 1000 : new Date(c.time).getTime();
+    return t >= anchorMs;
+  });
+  if (!candles.length) return null;
+  let sumPV = 0, sumV = 0, sumPV2 = 0;
+  for (const c of candles) {
+    const tp = (c.high + c.low + c.close) / 3;
+    sumPV += tp * c.volume;
+    sumV += c.volume;
+    sumPV2 += tp * tp * c.volume;
   }
+  if (sumV === 0) return null;
+  const vwap = sumPV / sumV;
+  const sigma = Math.sqrt(Math.max((sumPV2 / sumV) - (vwap * vwap), 0));
+  const r = ratio || 1;
+  return {
+    vwap: vwap * r,
+    sd1u: (vwap + sigma) * r, sd1l: (vwap - sigma) * r,
+    sd2u: (vwap + 2 * sigma) * r, sd2l: (vwap - 2 * sigma) * r,
+    sd3u: (vwap + 3 * sigma) * r, sd3l: (vwap - 3 * sigma) * r,
+    sigma: sigma * r, candles: candles.length
+  };
+}
+
+function calcPDLevelsRatio(daily, intraday, ratio) {
+  const r = ratio || 1;
+  let pdh = null, pdl = null, pdc = null, onHigh = null, onLow = null;
+  if (daily && daily.candles && daily.candles.length >= 2) {
+    const today = new Date().toISOString().split('T')[0];
+    const completed = daily.candles.filter(c => c.time !== today);
+    const pd = completed[completed.length - 1];
+    if (pd) { pdh = pd.high * r; pdl = pd.low * r; pdc = pd.close * r; }
+  }
+  if (intraday && intraday.candles && intraday.candles.length) {
+    const now = new Date();
+    const rthOpen = new Date(now); rthOpen.setUTCHours(13, 30, 0, 0);
+    const prevClose = new Date(rthOpen); prevClose.setUTCDate(prevClose.getUTCDate() - 1); prevClose.setUTCHours(20, 0, 0, 0);
+    const on = intraday.candles.filter(c => {
+      const t = typeof c.time === 'number' ? c.time * 1000 : new Date(c.time).getTime();
+      return t >= prevClose.getTime() && t < rthOpen.getTime();
+    });
+    if (on.length) {
+      onHigh = Math.max(...on.map(c => c.high)) * r;
+      onLow = Math.min(...on.map(c => c.low)) * r;
+    }
+  }
+  return { pdh, pdl, pdc, onHigh, onLow };
 }
 
 // Fetch VWAP every 5 minutes — futures trade nearly 24h, refresh on weekdays
