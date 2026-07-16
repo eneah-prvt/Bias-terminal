@@ -1076,12 +1076,11 @@ function calcPDLevelsRatio(daily, intraday, ratio) {
   return { pdh, pdl, pdc, onHigh, onLow };
 }
 
-// Fetch VWAP every 5 minutes — futures trade nearly 24h, refresh on weekdays
+// Recompute VWAP every minute. Not gated to UTC weekdays: the futures week
+// opens Sunday 17:00 CT, which is still UTC-Sunday, and a weekday gate would
+// freeze the VWAP through the whole Globex open.
 fetchVWAP();
-setInterval(() => {
-  const d = new Date().getUTCDay();
-  if (d >= 1 && d <= 5) fetchVWAP(); // Mon-Fri, all hours
-}, 5 * 60 * 1000);
+setInterval(fetchVWAP, 60 * 1000);
 
 app.get('/api/vwap', requireAuth, requireSubscription, (req, res) => {
   if (!vwapCache.updatedAt) return res.json({ ES: null, NQ: null });

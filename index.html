@@ -1604,7 +1604,7 @@ var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 let currentUser = null, currentToken = null, hasSub = false;
-let inst = 'ES', lvlInst = 'ES', chartInst = null, pollInt = null, autoInt = null, gexInt = null;
+let inst = 'ES', lvlInst = 'ES', chartInst = null, pollInt = null, autoInt = null, gexInt = null, fastInt = null;
 let liveData = { macro: null, cot: { ES: null, NQ: null }, gex: null, prices: null, session: null };
 const lvlState = {
   ES:{vwap:null,sd1u:null,sd1l:null,sd2u:null,sd2l:null,pdh:null,pdc:null,pdl:null,last:null},
@@ -1708,6 +1708,7 @@ async function afterLogin(session) {
   loadGEX();
   autoInt = setInterval(loadAll, 300000);
   gexInt = setInterval(loadGEX, 30000);
+  fastInt = setInterval(loadFast, 60000);
 }
 
 async function doLogout() {
@@ -1715,6 +1716,7 @@ async function doLogout() {
   currentUser = null; currentToken = null; hasSub = false;
   clearInterval(autoInt);
   clearInterval(gexInt);
+  clearInterval(fastInt);
   showView('landing');
 }
 
@@ -1818,6 +1820,27 @@ async function loadAll() {
   const now = new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
   document.getElementById('navTime').textContent = now + ' UTC';
   setNavStatus(liveData.macro || liveData.cot.ES ? 'ok' : 'err', liveData.macro ? 'LIVE · '+now : 'PARTIAL DATA');
+}
+
+// Fast poll: last price + VWAP every minute. Macro/COT/session stay on the
+// 5-min loadAll cycle — they don't move faster, and every extra authFetch
+// costs a Supabase auth round-trip.
+async function loadFast() {
+  if (!currentToken) return;
+  try {
+    const prices = await authFetch('/api/prices');
+    if (prices) {
+      liveData.prices = prices;
+      window.priceCache = { ES: prices?.ES?.price, NQ: prices?.NQ?.price };
+    }
+  } catch(e) {}
+  await fetchVWAP();          // pulls /api/vwap, re-renders levels + tech pages
+  renderBias();
+  renderStructureRead();
+  renderCombinedPage();
+  const now = new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  const nt = document.getElementById('navTime');
+  if (nt) nt.textContent = now + ' UTC';
 }
 
 // ── Bias Computation ──────────────────────────────────────
@@ -2836,7 +2859,7 @@ async function changePassword() {
           if(d.active){
             hasSub=true;
             window.history.replaceState({}, '', '/dashboard');
-            showView('dashboard');loadAll();loadGEX();autoInt=setInterval(loadAll,300000);gexInt=setInterval(loadGEX,30000);return;
+            showView('dashboard');loadAll();loadGEX();autoInt=setInterval(loadAll,300000);gexInt=setInterval(loadGEX,30000);fastInt=setInterval(loadFast,60000);return;
           }
         } catch(e){ console.error('Checkout success error:', e); }
       }
@@ -2847,7 +2870,7 @@ async function changePassword() {
       const r=await fetch('/api/subscription',{headers:{Authorization:'Bearer '+currentToken}});
       const d=await r.json();hasSub=d.active;
     } catch(e){ hasSub=false; }
-    if(hasSub){showView('dashboard');loadAll();loadGEX();autoInt=setInterval(loadAll,300000);gexInt=setInterval(loadGEX,30000);}
+    if(hasSub){showView('dashboard');loadAll();loadGEX();autoInt=setInterval(loadAll,300000);gexInt=setInterval(loadGEX,30000);fastInt=setInterval(loadFast,60000);}
     else{showView('pricing');}
   }
 })();
