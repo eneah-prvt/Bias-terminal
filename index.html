@@ -411,6 +411,16 @@ input,button{font-family:var(--font-sans);}
 #view-landing .reveal.d3{transition-delay:.24s}
 @media(prefers-reduced-motion:reduce){#view-landing .reveal{opacity:1;transform:none}
 #view-landing .marquee-track,#view-landing .dot,#view-landing .f1,#view-landing .f2,#view-landing .f3{animation:none}}
+
+/* ===== Maintenance modal ===== */
+#maintenanceModal{display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;background:rgba(4,6,10,.8);backdrop-filter:blur(6px);padding:24px;}
+#maintenanceModal .mnt-card{max-width:430px;width:100%;background:linear-gradient(180deg,#0e1218,#10161f);border:1px solid #212a36;border-radius:14px;padding:32px 28px;text-align:center;box-shadow:0 40px 90px -30px rgba(0,0,0,.85);font-family:'Inter',system-ui,-apple-system,sans-serif;}
+#maintenanceModal .mnt-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:#f5a623;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.28);border-radius:20px;padding:4px 12px;margin-bottom:18px;}
+#maintenanceModal .mnt-ico{font-size:34px;line-height:1;margin-bottom:14px;}
+#maintenanceModal h3{color:#eceef2;font-size:21px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px;}
+#maintenanceModal p{color:#8a94a3;font-size:14px;line-height:1.65;margin:0 0 24px;}
+#maintenanceModal button{background:#5b9dff;color:#05070c;border:none;border-radius:7px;font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:700;letter-spacing:.4px;padding:12px 28px;cursor:pointer;transition:background .2s;}
+#maintenanceModal button:hover{background:#7bb0ff;}
 </style>
 </head>
 <body>
@@ -1613,10 +1623,16 @@ const lvlState = {
 let activePromo = null;
 
 // ── View Routing ──────────────────────────────────────────
+// ── Maintenance notice (dismissible, dashboard only). Set MAINTENANCE_MODE=false to turn it off. ──
+const MAINTENANCE_MODE = true;
+function maybeShowMaintenance(){ if(!MAINTENANCE_MODE) return; try{ if(sessionStorage.getItem("mnt_dismissed")) return; }catch(e){} var m=document.getElementById("maintenanceModal"); if(m) m.style.display="flex"; }
+function dismissMaintenance(){ var m=document.getElementById("maintenanceModal"); if(m) m.style.display="none"; try{ sessionStorage.setItem("mnt_dismissed","1"); }catch(e){} }
+
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
   window.scrollTo(0, 0);
+  if (name === 'dashboard') maybeShowMaintenance();
 }
 
 function showAuth(tab = 'login') {
@@ -3880,5 +3896,16 @@ document.querySelectorAll('.q button').forEach(b=>{b.addEventListener('click',()
 
 })();
 </script>
+
+<!-- Maintenance notice (dashboard only) -->
+<div id="maintenanceModal" role="dialog" aria-modal="true" aria-labelledby="mntTitle" onclick="if(event.target===this)dismissMaintenance()">
+  <div class="mnt-card">
+    <div class="mnt-badge">● SYSTEM STATUS</div>
+    <div class="mnt-ico">🛠️</div>
+    <h3 id="mntTitle">Under Maintenance</h3>
+    <p>We're performing scheduled maintenance right now. Some data and features may be temporarily delayed or unavailable. Thanks for your patience — the terminal stays accessible.</p>
+    <button type="button" onclick="dismissMaintenance()">Got it</button>
+  </div>
+</div>
 </body>
 </html>
