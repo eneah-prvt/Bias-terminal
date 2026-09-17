@@ -270,100 +270,6 @@ input,button{font-family:var(--font-sans);}
 .refresh-btn{background:var(--bg3);border:1px solid var(--border);color:var(--blue);font-size:9px;padding:4px 12px;border-radius:3px;cursor:pointer;letter-spacing:1px;}
 .refresh-btn:hover{background:#1a2535;}
 
-/* ═══ DASHBOARD REFINEMENT — premium pass (Alpha-Bias) ═══ */
-.dash-page{padding:20px 24px!important;max-width:1280px!important;}
-.dash-nav{padding:12px 24px!important;background:linear-gradient(180deg,#0f141c,#0b0f15)!important;border-bottom:1px solid #202a37!important;}
-.dash-logo{letter-spacing:.24em;font-size:12.5px;color:var(--blue);}
-/* Elevated, consistent cards */
-.panel{background:linear-gradient(180deg,#10151d,#0c1118)!important;border:1px solid #202a37!important;border-radius:12px!important;padding:18px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 10px 26px -16px rgba(0,0,0,.75)!important;position:relative;}
-/* Card header: label with an accent tick */
-.plabel{font-size:10px!important;font-weight:700;letter-spacing:.11em;color:#aeb8c6!important;text-transform:uppercase;margin-bottom:13px!important;display:flex;align-items:center;gap:8px;}
-.plabel::before{content:"";width:3px;height:11px;border-radius:2px;background:linear-gradient(180deg,var(--blue),#3b6fd6);flex:none;}
-.ptitle{font-size:11px!important;color:var(--dim)!important;margin:-7px 0 14px!important;line-height:1.5;}
-.divider{margin:16px 0!important;border-top:1px solid #1a222e!important;}
-.metric-val{font-size:26px;letter-spacing:-.01em;}
-.score-lbl{font-size:17px;font-weight:800;}
-/* key/value rows */
-.kv{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #171f29;font-size:12px;}
-.kv:last-child{border-bottom:none;}
-.kv .k{color:var(--muted);letter-spacing:.03em;}
-.kv .v{font-family:var(--font-mono);font-weight:600;font-variant-numeric:tabular-nums;}
-.p-note{font-size:10px;color:var(--dim);line-height:1.5;}
-.p-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:13px;}
-.p-head .plabel{margin-bottom:0!important;}
-/* Layout */
-.grid-main{grid-template-columns:1fr 272px!important;gap:16px!important;}
-.grid-2col{gap:16px!important;}
-.rail,.col-stack{display:flex;flex-direction:column;gap:16px;}
-/* Macro tiles */
-.macro-g{grid-template-columns:repeat(4,1fr)!important;gap:9px!important;}
-.macro-item{background:#0a0f16!important;border:1px solid #1a222e!important;border-radius:9px!important;padding:12px!important;}
-.macro-name{font-size:9px!important;color:var(--dim)!important;letter-spacing:.09em;font-weight:600;}
-.macro-val{font-size:16px!important;margin-top:5px!important;font-family:var(--font-mono);}
-.macro-sub{font-size:9px!important;color:#66717f!important;margin-top:5px!important;}
-/* Instrument tabs — pill group */
-.inst-tabs{gap:4px;margin-bottom:16px!important;background:#0a0f16;border:1px solid #1a222e;border-radius:9px;padding:4px;display:inline-flex;}
-.itab{padding:7px 18px;font-size:11px;letter-spacing:.05em;border:none!important;background:transparent!important;border-radius:6px;color:var(--muted);}
-.itab.active{background:rgba(91,157,255,.14)!important;color:#cfe0ff!important;}
-/* Nav tabs */
-.nav-tab{padding:6px 15px!important;font-size:10.5px!important;letter-spacing:.06em;border-radius:7px!important;}
-.nav-tab.active{background:rgba(91,157,255,.12)!important;color:#cfe0ff!important;border-color:rgba(91,157,255,.3)!important;}
-/* Alignment bar — premium status strip */
-.align-bar{display:flex;align-items:center;flex-wrap:wrap;background:linear-gradient(180deg,#10151d,#0c1118);border:1px solid #202a37;border-radius:12px;margin-bottom:16px;overflow:hidden;box-shadow:0 10px 26px -18px rgba(0,0,0,.75);}
-.align-bar .ab-lbl{font-size:9px;color:var(--dim);letter-spacing:.16em;font-weight:700;padding:13px 18px;border-right:1px solid #1a222e;background:rgba(255,255,255,.015);}
-.align-bar .ab-item{padding:13px 18px;font-size:11px;color:var(--muted);letter-spacing:.05em;border-right:1px solid #141b25;}
-.align-bar .ab-item b{font-family:var(--font-mono);font-weight:700;color:var(--dim);margin-left:8px;}
-.align-bar .ab-verdict{margin-left:auto;padding:13px 20px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--dim);}
-/* COT / composite bars — rounder, clearer */
-.cot-track,.comp-track{height:6px!important;background:#0a0f16!important;border-radius:4px!important;}
-.cot-name,.comp-lbl{font-size:10px!important;color:var(--muted)!important;}
-.pill{font-size:8.5px!important;padding:4px 10px!important;border-radius:5px!important;letter-spacing:.06em;}
-@media(max-width:900px){.macro-g{grid-template-columns:1fr 1fr!important;}.grid-main{grid-template-columns:1fr!important;}}
-
-
-/* ═══ LANDING-SIGNATURE LAYER — creative / premium (Alpha-Bias) ═══ */
-/* Ambient aurora behind the whole dashboard (like the landing hero) */
-#view-dashboard{position:relative;background:
-  radial-gradient(1100px 560px at 12% -8%, rgba(91,157,255,.12), transparent 58%),
-  radial-gradient(1000px 680px at 102% -2%, rgba(139,92,246,.10), transparent 55%),
-  radial-gradient(900px 600px at 60% 120%, rgba(61,220,132,.045), transparent 60%),
-  var(--bg)!important;}
-/* Glassy, airy premium cards with a soft gradient top edge */
-.panel{background:linear-gradient(180deg, rgba(21,27,37,.90), rgba(12,17,25,.92))!important;
-  border:1px solid rgba(128,148,178,.12)!important;
-  border-radius:16px!important;
-  padding:20px 20px!important;
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 20px 44px -26px rgba(0,0,0,.85)!important;
-  transition:border-color .25s, transform .25s, box-shadow .25s;}
-.panel::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;border-radius:16px 16px 0 0;
-  background:linear-gradient(90deg,transparent,rgba(91,157,255,.5),rgba(139,92,246,.35),transparent);
-  opacity:.6;pointer-events:none;}
-/* Airy spacing */
-.dash-page{padding:26px 30px!important;max-width:1320px!important;}
-.grid-main{gap:18px!important;grid-template-columns:1fr 288px!important;}
-.grid-2col{gap:18px!important;}
-.rail,.col-stack{gap:18px!important;}
-/* Section labels: eyebrow style like the landing */
-.plabel{font-size:9.5px!important;letter-spacing:.16em!important;color:#8fa0b8!important;}
-.plabel::before{height:12px;width:3px;}
-/* Metrics: bigger, more confident */
-.metric-val{font-size:30px!important;font-weight:800;letter-spacing:-.02em;}
-.score-lbl{font-size:18px!important;}
-/* Nav: glassy top bar */
-.dash-nav{background:linear-gradient(180deg, rgba(15,20,28,.85), rgba(11,15,21,.85))!important;
-  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid rgba(128,148,178,.12)!important;}
-.dash-logo{background:linear-gradient(90deg,#8fbaff,#b79cff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.26em;font-weight:800;}
-/* Alignment strip: glassy */
-.align-bar{background:linear-gradient(180deg, rgba(21,27,37,.9), rgba(12,17,25,.92))!important;
-  border:1px solid rgba(128,148,178,.12)!important;border-radius:14px!important;
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);position:relative;}
-.align-bar::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;border-radius:14px 14px 0 0;background:linear-gradient(90deg,transparent,rgba(91,157,255,.5),rgba(139,92,246,.35),transparent);opacity:.6;}
-/* Macro tiles: soft, rounded */
-.macro-item{background:rgba(9,13,19,.6)!important;border:1px solid rgba(128,148,178,.10)!important;border-radius:11px!important;padding:13px!important;}
-/* Instrument pills */
-.inst-tabs{background:rgba(9,13,19,.6)!important;border:1px solid rgba(128,148,178,.12)!important;border-radius:11px!important;}
-
 /* ══ ADMIN ════════════════════════════════════════════════ */
 .admin-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:10px;}
 .admin-table th{text-align:left;font-size:9px;color:var(--dim);letter-spacing:2px;padding:8px;border-bottom:1px solid var(--border);font-weight:normal;}
@@ -888,7 +794,7 @@ input,button{font-family:var(--font-sans);}
 <!-- ══════════════ DASHBOARD ══════════════ -->
 <div class="view" id="view-dashboard">
   <nav class="dash-nav">
-    <div class="dash-logo">ALPHA<span style="color:var(--muted);">-</span>BIAS</div>
+    <div class="dash-logo">BIAS TERMINAL</div>
     <div class="dash-nav-tabs">
       <button class="nav-tab active" onclick="showDashPage('bias',this)">MACRO BIAS</button>
       <button class="nav-tab" onclick="showDashPage('session',this)">SESSION CHECK</button>
@@ -912,12 +818,12 @@ input,button{font-family:var(--font-sans);}
   </nav>
 
   <!-- BIAS PAGE -->
-  <div class="align-bar" id="alignmentBar">
-    <span class="ab-lbl">TIMEFRAME ALIGNMENT</span>
-    <span class="ab-item">MACRO<b id="al-macro">—</b></span>
-    <span class="ab-item">SESSION<b id="al-session">—</b></span>
-    <span class="ab-item">INTRADAY<b id="al-intraday">—</b></span>
-    <span class="ab-verdict" id="al-verdict">—</span>
+  <div id="alignmentBar" style="display:flex;align-items:center;gap:0;padding:0;margin-bottom:12px;background:linear-gradient(180deg,var(--bg2),var(--bg4));border:1px solid var(--border);border-radius:8px;font-size:10px;flex-wrap:wrap;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.3);">
+    <span style="color:var(--dim);font-size:8.5px;letter-spacing:0.1em;font-weight:600;padding:10px 16px;border-right:1px solid var(--border2);">TIMEFRAME ALIGNMENT</span>
+    <span style="padding:10px 16px;letter-spacing:0.05em;color:var(--muted);">MACRO&nbsp;&nbsp;<span id="al-macro" style="font-weight:600;color:var(--dim);font-family:var(--font-mono);">—</span></span>
+    <span style="padding:10px 16px;letter-spacing:0.05em;color:var(--muted);">SESSION&nbsp;&nbsp;<span id="al-session" style="font-weight:600;color:var(--dim);font-family:var(--font-mono);">—</span></span>
+    <span style="padding:10px 16px;letter-spacing:0.05em;color:var(--muted);">INTRADAY&nbsp;&nbsp;<span id="al-intraday" style="font-weight:600;color:var(--dim);font-family:var(--font-mono);">—</span></span>
+    <span style="margin-left:auto;font-weight:600;letter-spacing:0.04em;padding:10px 18px;font-size:9.5px;" id="al-verdict">—</span>
   </div>
   <div class="dash-page active" id="dash-bias">
     <div class="inst-tabs">
@@ -925,80 +831,72 @@ input,button{font-family:var(--font-sans);}
       <div class="itab" onclick="setInst('NQ',this)">NQ · NASDAQ 100</div>
     </div>
     <div class="grid-main">
-      <div class="col-stack">
-
+      <div style="display:flex;flex-direction:column;gap:12px;">
         <div class="panel">
-          <div class="p-head">
-            <div class="plabel">Signal Map</div>
-            <div class="p-note"><span id="modelCount">—</span> active signals · bias × conviction</div>
-          </div>
+          <div class="plabel">SIGNAL MAP</div>
+          <div class="ptitle">Bias × Conviction · <span id="modelCount">—</span> active signals</div>
           <div class="legend-row">
-            <div class="leg-item"><div class="leg-dot" style="background:var(--bull);"></div>BULLISH</div>
-            <div class="leg-item"><div class="leg-dot" style="background:var(--bear);"></div>BEARISH</div>
-            <div class="leg-item"><div class="leg-dot" style="background:#aab;"></div>CONSENSUS</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#22c55e;"></div>BULLISH</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#ef4444;"></div>BEARISH</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#aaa;border:1px solid #ccc;"></div>CONSENSUS</div>
           </div>
-          <div style="position:relative;height:240px;margin-top:12px;">
+          <div style="position:relative;height:240px;margin-top:8px;">
             <canvas id="constellation"></canvas>
           </div>
         </div>
-
-        <div class="grid-2col">
-          <div class="panel">
-            <div class="plabel">COT · CFTC TFF</div>
-            <div class="ptitle" id="cotTitle">Net positioning · index 0–100</div>
-            <div id="cotSection"><div class="p-note" style="padding:8px 0;"><span class="loader"></span>Loading CFTC…</div></div>
-            <div class="p-note" style="margin-top:12px;">Index &lt;20 → <span style="color:var(--bull);">bull signal</span> &nbsp;·&nbsp; &gt;80 → <span style="color:var(--bear);">fade signal</span></div>
-          </div>
-          <div class="panel">
-            <div class="plabel">Composite Macro Score</div>
-            <div class="ptitle">Yield 30 · VIX 20 · DXY 15 · HY 10 · COT 25</div>
-            <div id="compositeSection"><div class="p-note"><span class="loader"></span>Computing…</div></div>
-          </div>
-        </div>
-
         <div class="panel">
-          <div class="p-head">
-            <div class="plabel">Macro Indicators · FRED</div>
-            <div class="p-note" id="macroUpdateTime">Loading…</div>
-          </div>
-          <div class="macro-g" id="macroGrid"><div class="p-note" style="grid-column:1/-1;padding:6px 0;"><span class="loader"></span>Loading FRED…</div></div>
+          <div class="plabel">COT DATA · CFTC TFF REPORT</div>
+          <div class="ptitle" id="cotTitle">Net Positioning · COT Index 0–100</div>
+          <div id="cotSection"><div style="color:var(--dimmer);font-size:10px;padding:8px 0;"><span class="loader"></span>Loading CFTC...</div></div>
+          <div style="margin-top:8px;font-size:9px;color:var(--dim);">Index &lt;20 → <span style="color:#22c55e;">BULL SIGNAL</span> &nbsp;|&nbsp; Index &gt;80 → <span style="color:#ef4444;">FADE SIGNAL</span></div>
+        </div>
+        <div class="panel">
+          <div class="plabel">COMPOSITE MACRO SCORE</div>
+          <div class="ptitle">Yield Curve 30% · VIX 20% · DXY 15% · HY 10% · COT 25%</div>
+          <div id="compositeSection"><div style="color:var(--dimmer);font-size:10px;"><span class="loader"></span>Computing...</div></div>
+        </div>
+        <div class="panel">
+          <div class="plabel">MACRO INDICATORS · FRED LIVE</div>
+          <div class="ptitle" id="macroUpdateTime">Loading...</div>
+          <div class="macro-g" id="macroGrid"><div style="color:var(--dimmer);grid-column:1/-1;font-size:10px;padding:6px 0;"><span class="loader"></span>Loading FRED...</div></div>
           <div class="pills" id="signalPills"></div>
         </div>
-
       </div>
-      <div class="rail">
-
+      <div class="right-col">
         <div class="panel">
-          <div class="plabel">Directional Bias</div>
-          <div style="display:flex;align-items:center;gap:14px;margin:2px 0 14px;">
+          <div class="plabel">REGIME</div>
+          <div id="regimeBadge"><div style="color:var(--dimmer);">—</div></div>
+          <div class="plabel">CONSENSUS</div>
+          <div class="metric-val" id="consensusVal" style="color:var(--dimmer);">—</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:3px;">NET DIR: <span id="netDir" style="color:var(--dimmer);">—</span></div>
+          <hr class="divider">
+          <div class="plabel">BIAS SCORE</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
             <div class="score-ring">
               <svg width="64" height="64" viewBox="0 0 64 64">
                 <circle cx="32" cy="32" r="26" fill="none" stroke="#1a2030" stroke-width="6"/>
-                <circle cx="32" cy="32" r="26" fill="none" stroke="#2a3040" stroke-width="6" stroke-dasharray="163.4" stroke-dashoffset="163" stroke-linecap="round" id="biasRing"/>
+                <circle cx="32" cy="32" r="26" fill="none" stroke="#2a3040" stroke-width="6"
+                  stroke-dasharray="163.4" stroke-dashoffset="163" stroke-linecap="round" id="biasRing"/>
               </svg>
               <div class="score-lbl" id="biasScore" style="color:var(--dimmer);">—</div>
             </div>
-            <div>
-              <div class="metric-val" id="consensusVal" style="color:var(--dimmer);">—</div>
-              <div class="p-note" style="margin-top:3px;">CONSENSUS · NET <span id="netDir" style="color:var(--dimmer);">—</span></div>
-            </div>
+            <div style="font-size:10px;color:var(--muted);line-height:1.7;" id="biasDesc">Loading...</div>
           </div>
-          <div style="font-size:11px;color:var(--muted);line-height:1.65;" id="biasDesc">Loading…</div>
-          <hr class="divider">
-          <div class="plabel">Regime</div>
-          <div id="regimeBadge"><div style="color:var(--dimmer);font-size:11px;">—</div></div>
-          <hr class="divider">
-          <div class="plabel">Regime Params</div>
-          <div id="regimeParams"><div class="p-note">—</div></div>
         </div>
-
         <div class="panel">
-          <div class="plabel">Session Bias</div>
-          <div class="kv"><span class="k">ASIA</span><span class="v" id="asiaB" style="color:var(--dimmer);">—</span></div>
-          <div class="kv"><span class="k">LONDON</span><span class="v" id="londonB" style="color:var(--dimmer);">—</span></div>
-          <div class="kv"><span class="k">NEW YORK</span><span class="v" id="nyB" style="color:var(--dimmer);">—</span></div>
+          <div class="plabel">SESSION BIAS</div>
+          <div class="sess-row"><div style="font-size:10px;color:var(--muted);">ASIA</div><div style="font-size:10px;font-weight:700;color:var(--dimmer);" id="asiaB">—</div></div>
+          <div class="sess-row"><div style="font-size:10px;color:var(--muted);">LONDON</div><div style="font-size:10px;font-weight:700;color:var(--dimmer);" id="londonB">—</div></div>
+          <div class="sess-row"><div style="font-size:10px;color:var(--muted);">NEW YORK</div><div style="font-size:10px;font-weight:700;color:var(--dimmer);" id="nyB">—</div></div>
         </div>
-
+        <div class="panel">
+          <div class="plabel">REGIME PARAMS</div>
+          <div id="regimeParams"><div style="color:var(--dimmer);font-size:10px;">—</div></div>
+        </div>
+        <div class="panel">
+          <div class="plabel">DATA STATUS</div>
+          <div id="dataStatus" style="font-size:10px;color:var(--muted);line-height:2;">—</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1119,7 +1017,7 @@ input,button{font-family:var(--font-sans);}
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr;gap:12px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
 
       <!-- NY SESSION BIAS -->
       <div class="panel">
@@ -1156,10 +1054,48 @@ input,button{font-family:var(--font-sans);}
         </div>
       </div>
 
+      <!-- PRE-TRADE CHECKLIST -->
+      <div class="panel">
+        <div class="plabel">PRE-TRADE CHECKLIST · NY OPEN</div>
+        <div style="margin-top:10px;" id="sc-checklist">
+          <div class="sc-check-item">
+            <div class="sc-check-box" id="chk-macro">?</div>
+            <div>
+              <div style="font-size:10px;color:var(--text);">Macro Score aligned</div>
+              <div style="font-size:9px;color:var(--dim);">Score &gt; +0.3 (bull) or &lt; −0.3 (bear)</div>
+            </div>
+          </div>
+          <div class="sc-check-item">
+            <div class="sc-check-box" id="chk-cot">?</div>
+            <div>
+              <div style="font-size:10px;color:var(--text);">COT not at extreme fade</div>
+              <div style="font-size:9px;color:var(--dim);">Large Spec index not &gt;80 (fade signal)</div>
+            </div>
+          </div>
+          <div class="sc-check-item">
+            <div class="sc-check-box" id="chk-vix">?</div>
+            <div>
+              <div style="font-size:10px;color:var(--text);">VIX regime acceptable</div>
+              <div style="font-size:9px;color:var(--dim);">VIX &lt;30 (not crisis mode)</div>
+            </div>
+          </div>
+          <div class="sc-check-item">
+            <div class="sc-check-box" id="chk-yc">?</div>
+            <div>
+              <div style="font-size:10px;color:var(--text);">Yield curve not inverted</div>
+              <div style="font-size:9px;color:var(--dim);">10Y−2Y spread &gt; −0.5%</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:4px;border:1px solid var(--border);">
+            <div style="font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:8px;">TRADE RECOMMENDATION & GEX CONTEXT</div>
+            <div id="sc-recommendation" style="line-height:1.6;">Loading data...</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-    <!-- LEVELS PAGE -->
+  <!-- LEVELS PAGE -->
   <div class="dash-page" id="dash-levels">
     <div class="inst-tabs">
       <div class="itab active" onclick="setLvlInst('ES',this)">ES · S&P 500</div>
@@ -2153,7 +2089,7 @@ function renderBias() {
 
   document.getElementById('signalPills').innerHTML=pills.map(p=>`<div class="pill ${p.c}">${p.t}</div>`).join('');
 
-  var _dsEl=document.getElementById('dataStatus'); if(_dsEl) _dsEl.innerHTML=
+  document.getElementById('dataStatus').innerHTML=
     `FRED: ${m?'✓ '+new Date(m.timestamp).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'✗ Not loaded'}<br>`+
     `COT ES: ${liveData.cot.ES?'✓ '+liveData.cot.ES.date:'✗ Not loaded'}<br>`+
     `COT NQ: ${liveData.cot.NQ?'✓ '+liveData.cot.NQ.date:'✗ Not loaded'}`;
@@ -2524,7 +2460,6 @@ function renderSessionCheck() {
 
   // ── Smart GEX + Price Analysis ─────────────────────────
   const rec = document.getElementById('sc-recommendation');
-  if (!rec) return;
 
   const esGex   = liveData.gex?.SPY;
   const nqGex   = liveData.gex?.QQQ;
@@ -2637,7 +2572,6 @@ function renderSessionCheck() {
 
 function setCheck(id, cls, symbol) {
   const el = document.getElementById(id);
-  if (!el) return;
   el.className = 'sc-check-box ' + cls;
   el.textContent = symbol;
 }
