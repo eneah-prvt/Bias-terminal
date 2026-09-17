@@ -270,46 +270,99 @@ input,button{font-family:var(--font-sans);}
 .refresh-btn{background:var(--bg3);border:1px solid var(--border);color:var(--blue);font-size:9px;padding:4px 12px;border-radius:3px;cursor:pointer;letter-spacing:1px;}
 .refresh-btn:hover{background:#1a2535;}
 
-/* ═══ DASHBOARD REFINEMENT — professional pass (Alpha-Bias) ═══════════════ */
-.dash-page{padding:18px 22px!important;max-width:1240px!important;}
-.dash-nav{padding:11px 22px!important;}
-.dash-logo{letter-spacing:.22em;}
-/* One consistent panel */
-.panel{background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border:1px solid var(--border)!important;border-radius:10px!important;padding:18px!important;box-shadow:0 1px 2px rgba(0,0,0,.25)!important;}
-.plabel{font-size:10px!important;font-weight:600;letter-spacing:.09em;color:var(--muted)!important;text-transform:uppercase;margin-bottom:12px!important;}
-.ptitle{font-size:11px!important;color:var(--dim)!important;margin-bottom:14px!important;line-height:1.5;}
-.divider{margin:14px 0!important;}
-.metric-val{font-size:24px;}
-.score-lbl{font-size:16px;}
-/* Generic key/value row */
-.kv{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2);font-size:12px;}
+/* ═══ DASHBOARD REFINEMENT — premium pass (Alpha-Bias) ═══ */
+.dash-page{padding:20px 24px!important;max-width:1280px!important;}
+.dash-nav{padding:12px 24px!important;background:linear-gradient(180deg,#0f141c,#0b0f15)!important;border-bottom:1px solid #202a37!important;}
+.dash-logo{letter-spacing:.24em;font-size:12.5px;color:var(--blue);}
+/* Elevated, consistent cards */
+.panel{background:linear-gradient(180deg,#10151d,#0c1118)!important;border:1px solid #202a37!important;border-radius:12px!important;padding:18px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 10px 26px -16px rgba(0,0,0,.75)!important;position:relative;}
+/* Card header: label with an accent tick */
+.plabel{font-size:10px!important;font-weight:700;letter-spacing:.11em;color:#aeb8c6!important;text-transform:uppercase;margin-bottom:13px!important;display:flex;align-items:center;gap:8px;}
+.plabel::before{content:"";width:3px;height:11px;border-radius:2px;background:linear-gradient(180deg,var(--blue),#3b6fd6);flex:none;}
+.ptitle{font-size:11px!important;color:var(--dim)!important;margin:-7px 0 14px!important;line-height:1.5;}
+.divider{margin:16px 0!important;border-top:1px solid #1a222e!important;}
+.metric-val{font-size:26px;letter-spacing:-.01em;}
+.score-lbl{font-size:17px;font-weight:800;}
+/* key/value rows */
+.kv{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #171f29;font-size:12px;}
 .kv:last-child{border-bottom:none;}
 .kv .k{color:var(--muted);letter-spacing:.03em;}
 .kv .v{font-family:var(--font-mono);font-weight:600;font-variant-numeric:tabular-nums;}
 .p-note{font-size:10px;color:var(--dim);line-height:1.5;}
-.p-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.p-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:13px;}
 .p-head .plabel{margin-bottom:0!important;}
 /* Layout */
-.grid-main{grid-template-columns:1fr 264px!important;gap:14px!important;}
-.grid-2col{gap:14px!important;}
-.rail{display:flex;flex-direction:column;gap:14px;}
-.col-stack{display:flex;flex-direction:column;gap:14px;}
-/* Macro indicator grid — calmer, roomier */
-.macro-g{grid-template-columns:repeat(4,1fr)!important;gap:8px!important;}
-.macro-item{background:var(--bg)!important;border:1px solid var(--border2)!important;border-radius:7px!important;padding:11px 12px!important;}
-.macro-name{font-size:9px!important;color:var(--dim)!important;letter-spacing:.08em;}
-.macro-val{font-size:15px!important;margin-top:4px!important;}
-.macro-sub{font-size:9px!important;color:var(--dim)!important;margin-top:4px!important;}
-/* Instrument tabs */
-.inst-tabs{gap:6px;margin-bottom:16px!important;}
-.itab{padding:6px 16px;font-size:11px;letter-spacing:.05em;}
-/* Alignment bar */
-.align-bar{display:flex;align-items:center;flex-wrap:wrap;background:linear-gradient(180deg,var(--bg2),var(--bg4));border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.25);}
-.align-bar .ab-lbl{font-size:9px;color:var(--dim);letter-spacing:.14em;font-weight:600;padding:12px 16px;border-right:1px solid var(--border2);}
-.align-bar .ab-item{padding:12px 16px;font-size:11px;color:var(--muted);letter-spacing:.04em;}
-.align-bar .ab-item b{font-family:var(--font-mono);font-weight:600;color:var(--dim);margin-left:6px;}
-.align-bar .ab-verdict{margin-left:auto;padding:12px 18px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--dim);}
+.grid-main{grid-template-columns:1fr 272px!important;gap:16px!important;}
+.grid-2col{gap:16px!important;}
+.rail,.col-stack{display:flex;flex-direction:column;gap:16px;}
+/* Macro tiles */
+.macro-g{grid-template-columns:repeat(4,1fr)!important;gap:9px!important;}
+.macro-item{background:#0a0f16!important;border:1px solid #1a222e!important;border-radius:9px!important;padding:12px!important;}
+.macro-name{font-size:9px!important;color:var(--dim)!important;letter-spacing:.09em;font-weight:600;}
+.macro-val{font-size:16px!important;margin-top:5px!important;font-family:var(--font-mono);}
+.macro-sub{font-size:9px!important;color:#66717f!important;margin-top:5px!important;}
+/* Instrument tabs — pill group */
+.inst-tabs{gap:4px;margin-bottom:16px!important;background:#0a0f16;border:1px solid #1a222e;border-radius:9px;padding:4px;display:inline-flex;}
+.itab{padding:7px 18px;font-size:11px;letter-spacing:.05em;border:none!important;background:transparent!important;border-radius:6px;color:var(--muted);}
+.itab.active{background:rgba(91,157,255,.14)!important;color:#cfe0ff!important;}
+/* Nav tabs */
+.nav-tab{padding:6px 15px!important;font-size:10.5px!important;letter-spacing:.06em;border-radius:7px!important;}
+.nav-tab.active{background:rgba(91,157,255,.12)!important;color:#cfe0ff!important;border-color:rgba(91,157,255,.3)!important;}
+/* Alignment bar — premium status strip */
+.align-bar{display:flex;align-items:center;flex-wrap:wrap;background:linear-gradient(180deg,#10151d,#0c1118);border:1px solid #202a37;border-radius:12px;margin-bottom:16px;overflow:hidden;box-shadow:0 10px 26px -18px rgba(0,0,0,.75);}
+.align-bar .ab-lbl{font-size:9px;color:var(--dim);letter-spacing:.16em;font-weight:700;padding:13px 18px;border-right:1px solid #1a222e;background:rgba(255,255,255,.015);}
+.align-bar .ab-item{padding:13px 18px;font-size:11px;color:var(--muted);letter-spacing:.05em;border-right:1px solid #141b25;}
+.align-bar .ab-item b{font-family:var(--font-mono);font-weight:700;color:var(--dim);margin-left:8px;}
+.align-bar .ab-verdict{margin-left:auto;padding:13px 20px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--dim);}
+/* COT / composite bars — rounder, clearer */
+.cot-track,.comp-track{height:6px!important;background:#0a0f16!important;border-radius:4px!important;}
+.cot-name,.comp-lbl{font-size:10px!important;color:var(--muted)!important;}
+.pill{font-size:8.5px!important;padding:4px 10px!important;border-radius:5px!important;letter-spacing:.06em;}
 @media(max-width:900px){.macro-g{grid-template-columns:1fr 1fr!important;}.grid-main{grid-template-columns:1fr!important;}}
+
+
+/* ═══ LANDING-SIGNATURE LAYER — creative / premium (Alpha-Bias) ═══ */
+/* Ambient aurora behind the whole dashboard (like the landing hero) */
+#view-dashboard{position:relative;background:
+  radial-gradient(1100px 560px at 12% -8%, rgba(91,157,255,.12), transparent 58%),
+  radial-gradient(1000px 680px at 102% -2%, rgba(139,92,246,.10), transparent 55%),
+  radial-gradient(900px 600px at 60% 120%, rgba(61,220,132,.045), transparent 60%),
+  var(--bg)!important;}
+/* Glassy, airy premium cards with a soft gradient top edge */
+.panel{background:linear-gradient(180deg, rgba(21,27,37,.90), rgba(12,17,25,.92))!important;
+  border:1px solid rgba(128,148,178,.12)!important;
+  border-radius:16px!important;
+  padding:20px 20px!important;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 20px 44px -26px rgba(0,0,0,.85)!important;
+  transition:border-color .25s, transform .25s, box-shadow .25s;}
+.panel::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;border-radius:16px 16px 0 0;
+  background:linear-gradient(90deg,transparent,rgba(91,157,255,.5),rgba(139,92,246,.35),transparent);
+  opacity:.6;pointer-events:none;}
+/* Airy spacing */
+.dash-page{padding:26px 30px!important;max-width:1320px!important;}
+.grid-main{gap:18px!important;grid-template-columns:1fr 288px!important;}
+.grid-2col{gap:18px!important;}
+.rail,.col-stack{gap:18px!important;}
+/* Section labels: eyebrow style like the landing */
+.plabel{font-size:9.5px!important;letter-spacing:.16em!important;color:#8fa0b8!important;}
+.plabel::before{height:12px;width:3px;}
+/* Metrics: bigger, more confident */
+.metric-val{font-size:30px!important;font-weight:800;letter-spacing:-.02em;}
+.score-lbl{font-size:18px!important;}
+/* Nav: glassy top bar */
+.dash-nav{background:linear-gradient(180deg, rgba(15,20,28,.85), rgba(11,15,21,.85))!important;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid rgba(128,148,178,.12)!important;}
+.dash-logo{background:linear-gradient(90deg,#8fbaff,#b79cff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.26em;font-weight:800;}
+/* Alignment strip: glassy */
+.align-bar{background:linear-gradient(180deg, rgba(21,27,37,.9), rgba(12,17,25,.92))!important;
+  border:1px solid rgba(128,148,178,.12)!important;border-radius:14px!important;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);position:relative;}
+.align-bar::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;border-radius:14px 14px 0 0;background:linear-gradient(90deg,transparent,rgba(91,157,255,.5),rgba(139,92,246,.35),transparent);opacity:.6;}
+/* Macro tiles: soft, rounded */
+.macro-item{background:rgba(9,13,19,.6)!important;border:1px solid rgba(128,148,178,.10)!important;border-radius:11px!important;padding:13px!important;}
+/* Instrument pills */
+.inst-tabs{background:rgba(9,13,19,.6)!important;border:1px solid rgba(128,148,178,.12)!important;border-radius:11px!important;}
 
 /* ══ ADMIN ════════════════════════════════════════════════ */
 .admin-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:10px;}
