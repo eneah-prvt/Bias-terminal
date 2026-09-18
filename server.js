@@ -635,7 +635,7 @@ async function getExpiration(symbol) {
 async function fetchGEXForExp(symbol, exp) {
   const [wallsRes, snapRes] = await Promise.all([
     fetch(`https://www.free-flow.site/public/walls?symbol=${symbol}&exp=${exp}`, { headers: { 'X-API-Key': FF_KEY } }),
-    fetch(`https://www.free-flow.site/public/snapshot?symbol=${symbol}&exp=${exp}`, { headers: { 'X-API-Key': FF_KEY } })
+    fetch(`https://www.free-flow.site/public/snapshot/oi-gex?symbol=${symbol}&exp=${exp}`, { headers: { 'X-API-Key': FF_KEY } })
   ]);
   const walls = wallsRes.ok ? await wallsRes.json() : {};
   const snap  = snapRes.ok  ? await snapRes.json()  : {};
@@ -722,7 +722,7 @@ async function fetchGEX(symbol) {
       net_vanna:        snap.total_dag  ?? null,
       net_ag:           snap.total_ag   ?? null,
       net_charm:        netCharm,
-      atm_iv:           atmIV,
+      atm_iv:           (snap.atm_iv != null ? snap.atm_iv : atmIV),
       iv_skew:          ivSkew,
       gex_profile:      gexProfile,
       dte:              snap.dte ?? null,
