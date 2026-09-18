@@ -609,27 +609,33 @@ function updateDailyRatio(symbol, ffSpot) {
 }
 
 async function getExpiration(symbol) {
-  try {
-    const r = await fetch(`https://www.free-flow.site/public/expirations?symbol=${symbol}`, {
-      headers: { 'X-API-Key': FF_KEY }
-    });
-    if (!r.ok) {
-      console.warn(`Expirations ${symbol} HTTP ${r.status} — using cached: ${lastExp[symbol]}`);
+  // FreeFlow's expirations endpoint intermittently returns 504 (gateway timeout).
+  // Retry with backoff so a single blip doesn't wipe GEX — especially right after a
+  // redeploy when lastExp is still empty. Fall back to last-good only after retries.
+  const url = `https://www.free-flow.site/public/expirations?symbol=${symbol}`;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const r = await fetch(url, { headers: { 'X-API-Key': FF_KEY } });
+      if (!r.ok) {
+        console.warn(`Expirations ${symbol} HTTP ${r.status} (attempt ${attempt}/3) — cached: ${lastExp[symbol]}`);
+        if (attempt < 3) { await new Promise(s => setTimeout(s, 1500 * attempt)); continue; }
+        return lastExp[symbol];
+      }
+      const d = await r.json();
+      const exps = d.expirations || [];
+      expListCache[symbol] = exps;
+      const today = new Date().toISOString().split('T')[0];
+      // Use today's expiration (0DTE) if available, else next upcoming
+      const exp = exps.find(e => e === today) || exps.find(e => e > today) || exps[0] || null;
+      if (exp) lastExp[symbol] = exp;
+      return exp || lastExp[symbol];
+    } catch(e) {
+      console.warn(`Expirations ${symbol} error (attempt ${attempt}/3): ${e.message} — cached: ${lastExp[symbol]}`);
+      if (attempt < 3) { await new Promise(s => setTimeout(s, 1500 * attempt)); continue; }
       return lastExp[symbol];
     }
-    const d = await r.json();
-    console.log(`Expirations ${symbol} raw:`, JSON.stringify(d).slice(0, 300));
-    const exps = d.expirations || [];
-    expListCache[symbol] = exps;
-    const today = new Date().toISOString().split('T')[0];
-    // Use today's expiration (0DTE) if available, else next upcoming
-    const exp = exps.find(e => e === today) || exps.find(e => e > today) || exps[0] || null;
-    if (exp) lastExp[symbol] = exp;
-    return exp || lastExp[symbol];
-  } catch(e) {
-    console.warn(`Expirations ${symbol} error — using cached: ${lastExp[symbol]}`);
-    return lastExp[symbol];
   }
+  return lastExp[symbol];
 }
 
 async function fetchGEXForExp(symbol, exp) {
@@ -1171,6 +1177,7 @@ app.get('/api/gex/raw', async (req, res) => {
   if (!FF_KEY) return res.json({ error: 'No key' });
   try {
     const expR = await fetch('https://www.free-flow.site/public/expirations?symbol=SPY', { headers: { 'X-API-Key': FF_KEY } });
+    if (!expR.ok) return res.json({ error: `FreeFlow expirations HTTP ${expR.status} (transient — retries in the live GEX loop)`, current_ratios: dailyRatio });
     const expD = await expR.json();
     const exps = (expD.expirations || []).slice(0, 5);
 
