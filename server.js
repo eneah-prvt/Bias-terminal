@@ -608,10 +608,23 @@ function updateDailyRatio(symbol, ffSpot) {
   if (symbol === 'QQQ' && validQQQ) { dailyRatio.QQQ = newRatio; }
 }
 
+// FreeFlow lists daily (0DTE) expirations Mon–Fri. When the expirations endpoint is
+// down (504) AND we have no cached value (e.g. right after a redeploy), guess today's
+// date in ET — rolling a weekend to Monday — so walls/snapshot (which stay up during
+// the exp 504s) can still be fetched and GEX populates instead of going blank.
+function guessExpiration() {
+  const fmt = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+  const wd = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(new Date());
+  let d = new Date();
+  if (wd === 'Sat') d = new Date(Date.now() + 2 * 86400000);
+  else if (wd === 'Sun') d = new Date(Date.now() + 1 * 86400000);
+  return fmt(d);
+}
+
 async function getExpiration(symbol) {
   // FreeFlow's expirations endpoint intermittently returns 504 (gateway timeout).
   // Retry with backoff so a single blip doesn't wipe GEX — especially right after a
-  // redeploy when lastExp is still empty. Fall back to last-good only after retries.
+  // redeploy when lastExp is still empty. Fall back to last-good, then a guessed today.
   const url = `https://www.free-flow.site/public/expirations?symbol=${symbol}`;
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
@@ -619,7 +632,7 @@ async function getExpiration(symbol) {
       if (!r.ok) {
         console.warn(`Expirations ${symbol} HTTP ${r.status} (attempt ${attempt}/3) — cached: ${lastExp[symbol]}`);
         if (attempt < 3) { await new Promise(s => setTimeout(s, 1500 * attempt)); continue; }
-        return lastExp[symbol];
+        return lastExp[symbol] || guessExpiration();
       }
       const d = await r.json();
       const exps = d.expirations || [];
@@ -632,10 +645,10 @@ async function getExpiration(symbol) {
     } catch(e) {
       console.warn(`Expirations ${symbol} error (attempt ${attempt}/3): ${e.message} — cached: ${lastExp[symbol]}`);
       if (attempt < 3) { await new Promise(s => setTimeout(s, 1500 * attempt)); continue; }
-      return lastExp[symbol];
+      return lastExp[symbol] || guessExpiration();
     }
   }
-  return lastExp[symbol];
+  return lastExp[symbol] || guessExpiration();
 }
 
 async function fetchGEXForExp(symbol, exp) {
