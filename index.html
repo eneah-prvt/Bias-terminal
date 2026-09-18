@@ -851,6 +851,7 @@ input,button{font-family:var(--font-sans);}
       <button class="nav-tab active" onclick="showDashPage('bias',this)">MACRO BIAS</button>
       <button class="nav-tab" onclick="showDashPage('session',this)">SESSION CHECK</button>
       <button class="nav-tab" onclick="showDashPage('levels',this)">INTRADAY LEVELS</button>
+      <button class="nav-tab" onclick="showDashPage('regime',this)">REGIME</button>
       <button class="nav-tab" onclick="showDashPage('technicals',this)" style="display:none;">TECHNICAL DATA</button>
       <button class="nav-tab" onclick="showDashPage('fundamentals',this)" style="display:none;">FUNDAMENTALS</button>
       <button class="nav-tab" onclick="showDashPage('combined',this)" style="display:none;">COMBINED BIAS</button>
@@ -1150,6 +1151,71 @@ input,button{font-family:var(--font-sans);}
   </div>
 
   <!-- COMBINED BIAS PAGE -->
+  <div class="dash-page" id="dash-regime">
+    <div class="inst-tabs">
+      <div class="itab active" onclick="setRegimeInst('NQ',this)">NQ · NASDAQ 100</div>
+      <div class="itab" onclick="setRegimeInst('ES',this)">ES · S&amp;P 500</div>
+      <span id="regime-updated" style="color:var(--dim);font-size:9px;margin-left:12px;align-self:center;"></span>
+    </div>
+    <div class="ptitle" style="margin:0 0 10px 2px;">Every readout carries what it is worth as a decision, measured on NQ 2010–2026 (~665 recorded tests). State is real and forecastable; its value as a participate/skip gate measured zero against a random veto in every test but one.</div>
+    <div class="grid-2col" style="margin-bottom:12px;">
+      <div class="panel">
+        <div class="plabel">COMPRESSION · THE ONE THAT SELECTS</div>
+        <div class="ptitle">Trailing-60-session percentile of the 04:00–09:30 premarket range ÷ premarket close · compress50 = ≤ 0.50, never tuned</div>
+        <div id="rg-compression" style="margin-top:10px;"></div>
+      </div>
+      <div class="panel">
+        <div class="plabel">CALENDAR · SCHEDULED PREMIUM</div>
+        <div class="ptitle">Event night into FOMC / NFP / CPI / PPI · OPEX · quad witching · roll week</div>
+        <div id="rg-calendar" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    <div class="grid-2col" style="margin-bottom:12px;">
+      <div class="panel">
+        <div class="plabel">VOLATILITY STATE · RANGE EXPECTATION</div>
+        <div class="ptitle">RTH range percentile · causal HAR next-session range · ATR20 — sizing, not a gate</div>
+        <div id="rg-vol" style="margin-top:10px;"></div>
+      </div>
+      <div class="panel">
+        <div class="plabel">DEALER GAMMA · RANGE ONLY</div>
+        <div class="ptitle">Short gamma ⇒ wider next session (381 vs 257 pts, t +7.56) · directional value: null</div>
+        <div id="rg-gamma" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    <div class="grid-2col" style="margin-bottom:12px;">
+      <div class="panel">
+        <div class="plabel">JUMP RISK (PROXY) · INVERTED FOR BREAKOUTS</div>
+        <div class="ptitle">Overnight gap in ATR20 + premarket realised vol vs its median</div>
+        <div id="rg-jump" style="margin-top:10px;"></div>
+      </div>
+      <div class="panel">
+        <div class="plabel">BALANCE · STAND-DOWN</div>
+        <div class="ptitle">≥ 45 min after the open ∧ ≥ 2 POC rotations ∧ developing range ÷ ATR14 ≤ 0.6 — discipline, not alpha</div>
+        <div id="rg-balance" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    <div class="grid-2col" style="margin-bottom:12px;">
+      <div class="panel">
+        <div class="plabel">TREND · OBSERVATION ONLY</div>
+        <div class="ptitle">10-session efficiency ratio · 200-day MA — every hidden state fitted was a volatility state (11.4×)</div>
+        <div id="rg-trend" style="margin-top:10px;"></div>
+      </div>
+      <div class="panel">
+        <div class="plabel">SCALE MONITOR · YOUR LEVELS IN ATR UNITS</div>
+        <div class="ptitle">An absolute threshold is a date filter (every live constant drifted −43% in ATR units)</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <input id="rg-level-name" placeholder="name (e.g. stop)" style="flex:1;min-width:90px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:4px;">
+          <input id="rg-level-pts" placeholder="points" type="number" style="width:90px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:4px;">
+          <button class="dash-btn" onclick="rgAddLevel()">ADD</button>
+        </div>
+        <div id="rg-scale" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="plabel">HONESTY BLOCK</div>
+      <div id="rg-honesty" style="margin-top:8px;"></div>
+    </div>
+  </div>
   <div class="dash-page" id="dash-combined">
     <div class="inst-tabs">
       <div class="itab active" onclick="setCombInst('ES',this)">ES · S&P 500</div>
@@ -2562,7 +2628,61 @@ async function showDashPage(page, el) {
     await loadGEX();
     renderSessionCheck();
   }
+  if (page === 'regime') { await loadRegime(); }
 }
+
+// ══ REGIME PAGE ══ (server: /api/regime, classifier: regime.js — every readout carries its measured decision value)
+var regimeInst = 'NQ', regimeData = null, regimeLevels = [];
+function setRegimeInst(sym, el) { regimeInst = sym; document.querySelectorAll('#dash-regime .itab').forEach(t => t.classList.remove('active')); el.classList.add('active'); renderRegime(); }
+async function loadRegime() {
+  if (!currentToken) return;
+  try { const d = await authFetch('/api/regime'); if (d) { regimeData = d; renderRegime(); } } catch (e) { console.warn('regime load', e); }
+}
+function rgAddLevel() {
+  const n = document.getElementById('rg-level-name').value.trim(), p = parseFloat(document.getElementById('rg-level-pts').value);
+  if (n && p > 0) { regimeLevels.push({ n, p }); renderRegime(); }
+}
+function rgRow(label, val, cls) { return `<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--border2);"><span style="color:var(--muted);font-size:10px;">${label}</span><span class="metric-val" style="font-size:13px;${cls ? 'color:var(--' + cls + ')' : ''}">${val ?? '—'}</span></div>`; }
+function rgNote(t, cls) { return `<div style="margin-top:8px;font-size:10.5px;line-height:1.45;color:var(--${cls || 'dim'});">${t}</div>`; }
+function renderRegime() {
+  const r = regimeData && regimeData[regimeInst];
+  const upd = document.getElementById('regime-updated');
+  if (!r) { if (upd) upd.textContent = regimeData?.error ? ('unavailable: ' + regimeData.error) : 'loading…'; return; }
+  if (upd) upd.textContent = 'session ' + r.session + ' · updated ' + new Date(regimeData.updatedAt).toLocaleTimeString();
+  const c = r.compression;
+  document.getElementById('rg-compression').innerHTML =
+    rgRow('pmv_pct', c.pmv_pct) + rgRow('compress50', c.compress50 === null ? '—' : (c.compress50 ? 'ON' : 'OFF'), c.compress50 ? 'bull' : 'bear') +
+    rgNote(c.reading, 'text') + rgNote(c.decision_value);
+  const k = r.calendar;
+  document.getElementById('rg-calendar').innerHTML =
+    rgRow('event night tonight', k.event_night_tonight.length ? k.event_night_tonight.join(', ') : 'no', k.event_night_tonight.length ? 'neut' : null) +
+    rgRow('release today', k.release_today.length ? k.release_today.join(', ') : 'no') +
+    rgRow('overnight premium (pts)', k.overnight_premium_pts) +
+    rgRow('opex / quad / roll week', `${k.opex ? 'OPEX ' : ''}${k.quad_witch ? 'QUAD ' : ''}${k.roll_week ? 'ROLL' : ''}`.trim() || '—') +
+    k.notes.filter(Boolean).map(n => rgNote('· ' + n)).join('');
+  const v = r.volatility;
+  document.getElementById('rg-vol').innerHTML =
+    rgRow('state', `${v.state} (pct ${v.pct ?? '—'})`, v.state === 'HIGH' ? 'neut' : null) + rgRow('last RTH range (pts)', v.last_range_pts) +
+    rgRow('HAR next-session range (pts)', v.har_next_range_pts) + rgRow('ATR20 (pts)', v.atr20_pts) + rgNote(v.decision_value || '');
+  const g = r.gamma;
+  document.getElementById('rg-gamma').innerHTML =
+    rgRow('dealer gamma', g.sign ? g.sign.toUpperCase() : 'n/a', g.sign === 'short' ? 'neut' : null) + rgRow('next-range expectation (pts)', g.next_range_expectation_pts) + rgNote(g.decision_value);
+  const j = r.jump_risk;
+  document.getElementById('rg-jump').innerHTML =
+    rgRow('level', j.level, j.level === 'HIGH' ? 'bull' : null) + rgRow('gap / ATR20', j.gap_atr20) + rgRow('premarket rv / median', j.premarket_rv_vs_median) +
+    rgNote(j.for_breakout_systems || '', 'text') + rgNote(j.for_mean_reversion || '');
+  const b = r.balance;
+  document.getElementById('rg-balance').innerHTML =
+    rgRow('in balance', b.in_balance ? 'YES' : 'no', b.in_balance ? 'neut' : null) + rgRow('minutes after open', b.minutes_after_open) +
+    rgRow('developing range / ATR14', b.developing_range_atr14) + rgRow('POC rotations', b.poc_rotations) + rgNote(b.decision_value || b.reason || '');
+  const t = r.trend_observation;
+  document.getElementById('rg-trend').innerHTML = rgRow('efficiency ratio (10d)', t.efficiency_ratio_10d) + rgRow('above 200-day MA', t.above_200dma === null ? '—' : (t.above_200dma ? 'yes' : 'no')) + rgNote(t.reading);
+  const atr = r.scale.atr20_pts;
+  document.getElementById('rg-scale').innerHTML = rgRow('ATR20 (pts)', atr) +
+    regimeLevels.map(l => rgRow(l.n + ' · ' + l.p + ' pts', atr ? (l.p / atr).toFixed(3) + ' ATR' : '—')).join('') + rgNote(r.scale.rule);
+  document.getElementById('rg-honesty').innerHTML = r.honesty.map(h => rgNote('· ' + h)).join('');
+}
+setInterval(() => { if (document.getElementById('dash-regime')?.classList.contains('active')) loadRegime(); }, 60 * 1000);
 
 // Standalone GEX loader — called on tab open AND on interval
 async function loadGEX() {

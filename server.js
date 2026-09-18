@@ -888,14 +888,15 @@ async function pxResolveContract(sym) {
   } catch (e) { console.warn(`ProjectX ${sym} contract error:`, e.message); return c.id; }
 }
 
-async function pxBars(contractId, startISO, endISO) {
+async function pxBars(contractId, startISO, endISO, opts = {}) {
   const token = await pxLogin();
   if (!token || !contractId) return null;
   try {
     const r = await fetch(`${PX_BASE}/api/History/retrieveBars`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ contractId, live: PX_LIVE, startTime: startISO, endTime: endISO, unit: 2, unitNumber: 1, limit: 5000, includePartialBar: true })
+      // unit: 1=second 2=minute 3=hour 4=day; default 1-minute (VWAP). The regime page asks for 30-minute and daily.
+      body: JSON.stringify({ contractId, live: PX_LIVE, startTime: startISO, endTime: endISO, unit: opts.unit ?? 2, unitNumber: opts.unitNumber ?? 1, limit: opts.limit ?? 5000, includePartialBar: opts.includePartialBar ?? true })
     });
     if (r.status === 429) { console.warn('ProjectX retrieveBars 429 — rate-limited, skip cycle'); return null; }
     const d = await r.json().catch(() => ({}));
@@ -1081,6 +1082,46 @@ function calcPDLevelsRatio(daily, intraday, ratio) {
 // freeze the VWAP through the whole Globex open.
 fetchVWAP();
 setInterval(fetchVWAP, 60 * 1000);
+
+// ══ REGIME — the classifier whose every readout carries its measured decision value ══
+// regime.js is pure; this block only feeds it: 30-min bars (65 sessions, premarket
+// included), daily bars (260, for ATR20 / 200-day MA / HAR), today's 1-min RTH bars
+// (balance detector), the release calendar (regime_events.json) and the QQQ/SPY
+// net-gamma label. Three ProjectX calls per symbol every 10 minutes; a 429 skips.
+const regime = require('./regime');
+const regimeCache = { NQ: null, ES: null, updatedAt: null, error: null };
+let regimeEventsFile = {};
+try { regimeEventsFile = JSON.parse(require('fs').readFileSync(path.join(__dirname, 'regime_events.json'), 'utf8')); }
+catch (e) { console.warn('regime_events.json not readable:', e.message); }
+
+async function fetchRegime() {
+  if (!PX_ENABLED) { regimeCache.error = 'ProjectX not configured'; return; }
+  const now = new Date();
+  for (const sym of ['NQ', 'ES']) {
+    try {
+      const cid = await pxResolveContract(sym);
+      if (!cid) continue;
+      const iso = (d) => new Date(d).toISOString();
+      const bars30 = await pxBars(cid, iso(now.getTime() - 95 * 86400000), iso(now), { unit: 2, unitNumber: 30, limit: 5000 });
+      const daily  = await pxBars(cid, iso(now.getTime() - 400 * 86400000), iso(now), { unit: 4, unitNumber: 1, limit: 400 });
+      const rthOpen = lastOccurrenceUtc(now, 9, 30, 'America/New_York');
+      const rth1m  = (rthOpen <= now.getTime() && (now.getTime() - rthOpen) < 7 * 3600000)
+        ? await pxBars(cid, iso(rthOpen), iso(now), { unit: 2, unitNumber: 1, limit: 500 }) : [];
+      if (!bars30 || !daily) { console.warn(`regime ${sym}: bars missing (keeping last-good)`); continue; }
+      const gexLabel = (sym === 'NQ' ? gexCache.QQQ : gexCache.SPY)?.data?.net_gex_label ?? null;
+      regimeCache[sym] = regime.classify({ bars30, daily, rth1m: rth1m || [], events: regimeEventsFile, gexLabel, nowMs: now.getTime() });
+      regimeCache[sym].source = 'projectx';
+      console.log(`regime ${sym}: compress50=${regimeCache[sym].compression.compress50} pmv=${regimeCache[sym].compression.pmv_pct} vol=${regimeCache[sym].volatility.state}`);
+    } catch (e) { console.warn(`regime ${sym} error:`, e.message); regimeCache.error = e.message; }
+  }
+  regimeCache.updatedAt = new Date().toISOString();
+}
+setTimeout(fetchRegime, 15 * 1000);
+setInterval(fetchRegime, 10 * 60 * 1000);
+
+app.get('/api/regime', requireAuth, requireSubscription, (req, res) => {
+  res.json({ NQ: regimeCache.NQ, ES: regimeCache.ES, updatedAt: regimeCache.updatedAt, error: regimeCache.error });
+});
 
 app.get('/api/vwap', requireAuth, requireSubscription, (req, res) => {
   if (!vwapCache.updatedAt) return res.json({ ES: null, NQ: null });
