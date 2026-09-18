@@ -1240,9 +1240,6 @@ app.get('/api/gex', requireAuth, requireSubscription, (req, res) => {
 });
 
 // ══ GEX DEBUG ═════════════════════════════════════════════
-// TEMP: capture current live gexCache to build the committed seed snapshot. Removed after capture.
-app.get('/api/gex/dump', (req, res) => res.json({ SPY: gexCache.SPY, QQQ: gexCache.QQQ, dailyRatio }));
-
 app.get('/api/gex/raw', async (req, res) => {
   if (!FF_KEY) return res.json({ error: 'No key' });
   try {
