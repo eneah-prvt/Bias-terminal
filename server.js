@@ -788,6 +788,19 @@ async function updateGEX() {
   await Promise.all([fetchGEX('SPY'), fetchGEX('QQQ')]);
 }
 
+// ══ GEX SEED — committed last-good snapshot so a weekend/redeploy still shows data ══
+// Railway's filesystem is ephemeral: only a file committed to the repo survives a
+// redeploy. Load it on startup; live fetches overwrite it. On weekends (fetch gated)
+// or before the first successful fetch, the dashboard serves this snapshot.
+try {
+  const seed = JSON.parse(require('fs').readFileSync(path.join(__dirname, 'gex_seed.json'), 'utf8'));
+  if (seed && seed.SPY && seed.SPY.data) {
+    gexCache.SPY = seed.SPY; gexCache.QQQ = seed.QQQ;
+    if (seed.dailyRatio) { dailyRatio.SPY = seed.dailyRatio.SPY || dailyRatio.SPY; dailyRatio.QQQ = seed.dailyRatio.QQQ || dailyRatio.QQQ; }
+    console.log(`GEX seed loaded (snapshot ${seed.SPY.updatedAt})`);
+  }
+} catch (e) { /* no seed file — fine */ }
+
 // Fetch immediately on startup, then every minute
 (async () => {
   const now = new Date();
@@ -1227,6 +1240,9 @@ app.get('/api/gex', requireAuth, requireSubscription, (req, res) => {
 });
 
 // ══ GEX DEBUG ═════════════════════════════════════════════
+// TEMP: capture current live gexCache to build the committed seed snapshot. Removed after capture.
+app.get('/api/gex/dump', (req, res) => res.json({ SPY: gexCache.SPY, QQQ: gexCache.QQQ, dailyRatio }));
+
 app.get('/api/gex/raw', async (req, res) => {
   if (!FF_KEY) return res.json({ error: 'No key' });
   try {
