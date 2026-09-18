@@ -1127,8 +1127,8 @@ input,button{font-family:var(--font-sans);}
     </div>
     <div class="grid-2col" style="margin-bottom:12px;">
       <div class="panel">
-        <div class="plabel">VWAP · AUTO-CALCULATED <span id="vwap-updated" style="color:var(--dim);font-size:8px;margin-left:8px;"></span></div>
-        <div class="ptitle">Auto-calculated · Globex-anchored · Resets 18:00 ET</div>
+        <div class="plabel">KEY REFERENCE LEVELS <span id="vwap-updated" style="color:var(--dim);font-size:8px;margin-left:8px;"></span></div>
+        <div class="ptitle">Prior session &amp; overnight · distance in points</div>
         <div id="vwapLevels" style="margin-top:10px;"></div>
       </div>
       <div class="panel">
@@ -1163,7 +1163,7 @@ input,button{font-family:var(--font-sans);}
     </div>
     <div class="panel" style="margin-bottom:12px;">
       <div class="plabel">PRICE MAP · LEVEL LADDER</div>
-      <div class="ptitle">All key levels ranked by price · distance in expected-move units</div>
+      <div class="ptitle">All key levels ranked by price · distance in points</div>
       <div id="priceMap" style="padding:8px 0;min-height:80px;"></div>
     </div>
     <div class="panel" style="margin-bottom:12px;">
@@ -2990,33 +2990,33 @@ function renderLevelsPage() {
   const gex = gexCache ? gexCache[inst] : null;
   const price = priceCache ? priceCache[inst] : null;
 
-  // VWAP panel
+  // Key reference levels — Prior session + Overnight (VWAP removed: futures feed offline)
   const vwapEl = document.getElementById('vwapLevels');
   if (vwapEl) {
-    if (data && data.bands) {
-      renderVWAPLevels(vwapEl, data.bands, price, 1);
-      // Append PD/ON levels under the bands
-      const pd = data.pd;
-      if (pd && (pd.pdh || pd.onHigh)) {
-        const pdRow = (label, val, color) => val ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
-          <span style="font-size:9px;letter-spacing:1px;color:var(--dim);">${label}</span>
-          <span style="font-size:12px;color:${color};font-family:monospace;">${val.toFixed(2)}</span>
-          <span style="font-size:8px;color:${price ? (price > val ? 'var(--green)' : 'var(--red)') : 'var(--dim)'};">${price ? (price > val ? 'ABOVE' : 'BELOW') : ''}</span>
-        </div>` : '';
-        vwapEl.innerHTML += `<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border);">
-          <div style="font-size:8px;color:var(--dim);letter-spacing:1px;margin-bottom:4px;">PRIOR SESSION · OVERNIGHT</div>
-          ${pdRow('PDH', pd.pdh, '#86efac')}
-          ${pdRow('PDC', pd.pdc, '#4a9eff')}
-          ${pdRow('PDL', pd.pdl, '#fca5a5')}
-          ${pdRow('ON HIGH', pd.onHigh, '#bbf7d0')}
-          ${pdRow('ON LOW', pd.onLow, '#fecaca')}
-        </div>`;
-      }
-      const upd = document.getElementById('vwap-updated');
-      if (upd && data.updatedAt) upd.textContent = 'Updated ' + new Date(data.updatedAt).toLocaleTimeString();
+    const pd = data && data.pd;
+    const refRow = (label, val, color) => {
+      if (val == null) return '';
+      const dist = price ? (val - price) : null;
+      const distTxt = dist == null ? '' : (dist > 0 ? '+' : '') + dist.toFixed(2) + ' pts';
+      const distCol = dist == null ? 'var(--dim)' : dist > 0 ? '#3ddc84' : '#f0616d';
+      return `<div style="display:grid;grid-template-columns:78px 1fr 96px;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border2);">
+        <span style="font-size:9.5px;letter-spacing:.08em;color:var(--dim);">${label}</span>
+        <span style="font-family:var(--font-mono);font-size:12.5px;color:${color};font-variant-numeric:tabular-nums;">${val.toFixed(2)}</span>
+        <span style="text-align:right;font-family:var(--font-mono);font-size:10px;color:${distCol};">${distTxt}</span>
+      </div>`;
+    };
+    if (pd && (pd.pdh || pd.onHigh)) {
+      vwapEl.innerHTML =
+        refRow('PDH', pd.pdh, '#86efac') +
+        refRow('PDC', pd.pdc, '#5b9dff') +
+        refRow('PDL', pd.pdl, '#fca5a5') +
+        refRow('ON HIGH', pd.onHigh, '#bbf7d0') +
+        refRow('ON LOW', pd.onLow, '#fecaca');
     } else {
-      vwapEl.innerHTML = '<div style="color:var(--dim);font-size:10px;padding:8px;">Calculating intraday levels...</div>';
+      vwapEl.innerHTML = '<div style="color:var(--dim);font-size:10px;padding:8px;">Reference levels load with the session feed.</div>';
     }
+    const upd = document.getElementById('vwap-updated');
+    if (upd) upd.textContent = '';
   }
 
   // GEX Levels panel
@@ -3050,50 +3050,42 @@ function renderLevelsPage() {
   // Price Map — clean vertical level ladder
   const mapEl = document.getElementById('priceMap');
   if (mapEl && gex && price) {
-    const em = gex.expected_move;
+    // GEX key levels + prior-session reference (VWAP/σ removed until real futures feed returns)
     const levels = [
-      { label: 'Call Wall',  val: gex.call_wall,  color: '#3ddc84', kind: 'wall' },
-      { label: 'Call OI',    val: gex.call_oi_wall, color: '#2a9d63', kind: 'oi' },
-      { label: '+2σ',        val: data?.bands?.sd2u, color: '#5a6573', kind: 'vwap' },
-      { label: '+1σ',        val: data?.bands?.sd1u, color: '#5a6573', kind: 'vwap' },
-      { label: 'VWAP',       val: data?.bands?.vwap, color: '#5b9dff', kind: 'vwap-main' },
-      { label: 'Gamma Flip', val: gex.gamma_flip,  color: '#f5a623', kind: 'flip' },
-      { label: '−1σ',        val: data?.bands?.sd1l, color: '#5a6573', kind: 'vwap' },
-      { label: '−2σ',        val: data?.bands?.sd2l, color: '#5a6573', kind: 'vwap' },
-      { label: 'Put OI',     val: gex.put_oi_wall, color: '#b04752', kind: 'oi' },
-      { label: 'Put Wall',   val: gex.put_wall,   color: '#f0616d', kind: 'wall' },
+      { label: 'Call Wall',  val: gex.call_wall,    color: '#3ddc84', kind: 'wall' },
+      { label: 'Call OI',    val: gex.call_oi_wall,  color: '#2a9d63', kind: 'oi' },
+      { label: 'PDH',        val: data?.pd?.pdh,     color: '#8a94a3', kind: 'ref' },
+      { label: 'Gamma Flip', val: gex.gamma_flip,    color: '#f5a623', kind: 'flip' },
+      { label: 'PDC',        val: data?.pd?.pdc,     color: '#8a94a3', kind: 'ref' },
+      { label: 'PDL',        val: data?.pd?.pdl,     color: '#8a94a3', kind: 'ref' },
+      { label: 'Put OI',     val: gex.put_oi_wall,   color: '#b04752', kind: 'oi' },
+      { label: 'Put Wall',   val: gex.put_wall,      color: '#f0616d', kind: 'wall' },
     ].filter(l => l.val);
 
     // Build a combined sorted ladder including price
-    const allRows = [...levels, { label: 'PRICE', val: price, color: '#5b9dff', kind: 'price' }]
+    const allRows = [...levels, { label: 'PRICE', val: price, kind: 'price' }]
       .sort((a, b) => b.val - a.val);
 
-    const mn = Math.min(...allRows.map(r => r.val));
-    const mx = Math.max(...allRows.map(r => r.val));
-    const range = mx - mn || 1;
-
-    // Row-based ladder: each level a row, bar shows relative position, color-coded
+    // Row-based ladder: each level a row, distance shown in points
     const rowHtml = allRows.map(r => {
       const isPrice = r.kind === 'price';
       const dist = isPrice ? null : (r.val - price);
-      const distEM = (dist != null && em) ? (dist / em).toFixed(2) : null;
-      const distPct = dist != null ? (dist / price * 100).toFixed(2) : null;
-      const posPct = ((r.val - mn) / range * 100);
-      const weight = isPrice ? '700' : (r.kind === 'wall' || r.kind === 'flip' || r.kind === 'vwap-main') ? '600' : '400';
-      const fontSize = isPrice ? '12px' : '10.5px';
-      const bg = isPrice ? 'linear-gradient(90deg,rgba(91,157,255,0.18),rgba(91,157,255,0.04))' : 'transparent';
+      const distTxt = dist == null ? 'current' : (dist > 0 ? '+' : '') + dist.toFixed(2) + ' pts';
+      const distCol = isPrice ? 'var(--dim)' : dist > 0 ? '#3ddc84' : '#f0616d';
+      const weight = isPrice ? '700' : (r.kind === 'wall' || r.kind === 'flip') ? '600' : '400';
+      const fontSize = isPrice ? '12.5px' : '11px';
+      const nameCol = isPrice ? '#5b9dff' : r.color;
+      const bg = isPrice ? 'linear-gradient(90deg,rgba(91,157,255,0.16),rgba(91,157,255,0.03))' : 'transparent';
       const border = isPrice ? '1px solid rgba(91,157,255,0.4)' : '1px solid transparent';
-      const aboveBelow = isPrice ? '' : (dist > 0 ? 'above' : 'below');
-      const distCol = dist > 0 ? '#3ddc84' : '#f0616d';
-      return `<div style="display:grid;grid-template-columns:90px 1fr 110px;align-items:center;gap:10px;padding:5px 10px;border-radius:5px;background:${bg};border:${border};margin-bottom:2px;">
-        <span style="font-size:${fontSize};font-weight:${weight};color:${r.color};letter-spacing:0.02em;">${isPrice ? '▶ PRICE' : r.label}</span>
+      return `<div style="display:grid;grid-template-columns:96px 1fr 104px;align-items:center;gap:10px;padding:6px 12px;border-radius:6px;background:${bg};border:${border};margin-bottom:2px;">
+        <span style="font-size:${fontSize};font-weight:${weight};color:${nameCol};letter-spacing:0.02em;">${isPrice ? '▶ PRICE' : r.label}</span>
         <span style="font-family:var(--font-mono);font-size:${fontSize};font-weight:${weight};color:${isPrice ? '#5b9dff' : 'var(--text)'};font-variant-numeric:tabular-nums;">${r.val.toFixed(2)}</span>
-        <span style="text-align:right;font-size:9px;font-family:var(--font-mono);color:${isPrice ? 'var(--dim)' : distCol};">${isPrice ? 'current' : (distEM ? (dist>0?'+':'')+distEM+' EM' : (dist>0?'+':'')+distPct+'%')}</span>
+        <span style="text-align:right;font-family:var(--font-mono);font-size:10px;font-weight:${isPrice ? '600' : '500'};color:${distCol};">${distTxt}</span>
       </div>`;
     }).join('');
 
     mapEl.innerHTML = `<div style="padding:2px 0;">
-      <div style="display:grid;grid-template-columns:90px 1fr 110px;gap:10px;padding:0 10px 6px;font-size:8px;letter-spacing:0.1em;color:var(--dim);border-bottom:1px solid var(--border2);margin-bottom:6px;">
+      <div style="display:grid;grid-template-columns:96px 1fr 104px;gap:10px;padding:0 12px 6px;font-size:8px;letter-spacing:0.12em;color:var(--dim);border-bottom:1px solid var(--border2);margin-bottom:6px;">
         <span>LEVEL</span><span>PRICE</span><span style="text-align:right;">DISTANCE</span>
       </div>
       ${rowHtml}
@@ -3284,7 +3276,7 @@ function renderStructureRead() {
   if (!el) return;
   const gex = gexCache ? gexCache[lvlInst] : null;
   const price = window.priceCache ? window.priceCache[lvlInst] : null;
-  const vwap = vwapCache?.[lvlInst]?.bands;
+  const vwap = null; // VWAP disabled — SPY/QQQ fallback is wrong until real futures feed (ProjectX) returns
 
   if (!gex || !price) { el.innerHTML = '<span style="color:var(--dim);">Awaiting data...</span>'; return; }
 
