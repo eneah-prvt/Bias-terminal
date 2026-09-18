@@ -273,11 +273,12 @@ input,button{font-family:var(--font-sans);}
 
 /* ═══ FLAT-MINIMAL DASHBOARD — Alpha-Bias #1 ═══ */
 #view-dashboard{
-  --bg:#0b0c0e;--bg2:#141619;--bg3:#181b20;--bg4:#101215;--card:#141619;--card2:#101215;
-  --border:#22252b;--border2:#191b20;--bd:#22252b;--bd2:#191b20;
-  --text:#eceef1;--muted:#a8adb6;--dim:#787e88;--dimmer:#565b64;
-  --blue:#6ea8ff;--purple:#6ea8ff;--bull:#4ec98a;--bear:#e26a6a;--neut:#e0b24e;
-  font-family:'Archivo',system-ui,-apple-system,sans-serif;background:#0b0c0e!important;
+  /* original deep palette — matches landing (user: original colors were best) */
+  --bg:#080a0e;--bg2:#0e1218;--bg3:#141b24;--bg4:#10161f;--card:#0e1218;--card2:#10161f;
+  --border:#212a36;--border2:#1a212c;--bd:#212a36;--bd2:#1a212c;
+  --text:#eceef2;--muted:#8a94a3;--dim:#5a6573;--dimmer:#333d4a;
+  --blue:#5b9dff;--purple:#8b5cf6;--bull:#3ddc84;--bear:#f0616d;--neut:#f5a623;
+  font-family:var(--font-sans);background:var(--bg)!important;
 }
 #view-dashboard .dash-page{padding:26px 26px 60px!important;max-width:1240px!important;}
 #view-dashboard .dash-nav{background:#0d0e10!important;border-bottom:1px solid var(--bd)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:11px 24px!important;}
@@ -287,8 +288,9 @@ input,button{font-family:var(--font-sans);}
 #view-dashboard .inst-tabs{gap:6px;margin-bottom:20px!important;}
 #view-dashboard .itab{border-radius:7px!important;font-size:12px!important;padding:7px 15px!important;background:transparent!important;border:1px solid var(--bd)!important;color:var(--dim)!important;}
 #view-dashboard .itab.active{background:#1a1d22!important;color:var(--text)!important;border-color:var(--bd)!important;}
-/* FLAT cards — no gradient / glow / shadow */
-#view-dashboard .panel,#view-dashboard .card{background:var(--card)!important;background-image:none!important;border:1px solid var(--bd)!important;border-radius:12px!important;box-shadow:none!important;padding:20px!important;}
+/* PREMIUM cards — gradient + neon glow (landing look) */
+#view-dashboard .panel,#view-dashboard .card{background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;background-image:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border:1px solid var(--border)!important;border-radius:10px!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 22px 44px -30px rgba(91,157,255,.30),inset 0 1px 0 rgba(255,255,255,.03)!important;padding:20px!important;position:relative;transition:border-color .2s,box-shadow .2s,transform .2s;}
+#view-dashboard .panel:hover,#view-dashboard .card:hover{border-color:rgba(91,157,255,.30)!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 26px 52px -26px rgba(91,157,255,.42),inset 0 1px 0 rgba(255,255,255,.04)!important;}
 #view-dashboard .panel::after,#view-dashboard .card::after{display:none!important;}
 #view-dashboard .plabel{font-size:10px!important;letter-spacing:.16em!important;color:var(--dim)!important;text-transform:uppercase;font-weight:600;margin-bottom:13px!important;}
 #view-dashboard .plabel::before{display:none!important;}
@@ -321,6 +323,26 @@ input,button{font-family:var(--font-sans);}
 #view-dashboard .fgrid .span2{grid-column:span 2;}
 #view-dashboard .sess-row,#view-dashboard .cot-row{border-color:var(--bd2)!important;}
 @media(max-width:900px){#view-dashboard .dhero{grid-template-columns:1fr;gap:22px;}#view-dashboard .fgrid{grid-template-columns:1fr;}#view-dashboard .macro-g{grid-template-columns:1fr 1fr!important;}}
+
+/* ═══ PREMIUM SKIN — landing theme on dashboard (grid + aurora + neon) ═══ */
+#view-dashboard .db-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:54px 54px;-webkit-mask-image:radial-gradient(ellipse 110% 70% at 50% 0%,#000 42%,transparent 82%);mask-image:radial-gradient(ellipse 110% 70% at 50% 0%,#000 42%,transparent 82%);}
+#view-dashboard .db-aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+#view-dashboard .db-aurora::before,#view-dashboard .db-aurora::after{content:"";position:absolute;border-radius:50%;filter:blur(130px);opacity:.4;}
+#view-dashboard .db-aurora::before{width:640px;height:640px;left:-200px;top:-260px;background:radial-gradient(circle,rgba(91,157,255,.20),transparent 62%);}
+#view-dashboard .db-aurora::after{width:600px;height:600px;right:-180px;top:160px;background:radial-gradient(circle,rgba(139,92,246,.16),transparent 62%);}
+#view-dashboard .dash-page,#view-dashboard #alignmentBar{position:relative;z-index:1;}
+#view-dashboard .dash-nav{z-index:100;background:rgba(9,11,15,.82)!important;-webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;}
+/* hero — strongest premium treatment */
+#view-dashboard .dhero{position:relative;background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border:1px solid var(--border)!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 30px 66px -30px rgba(91,157,255,.42),inset 0 1px 0 rgba(255,255,255,.04)!important;overflow:hidden;}
+#view-dashboard .dhero::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue),var(--purple),transparent);opacity:.75;}
+/* neon accents */
+#view-dashboard .nav-tab.active{background:rgba(91,157,255,.10)!important;color:var(--blue)!important;border-color:rgba(91,157,255,.28)!important;box-shadow:0 0 0 1px rgba(91,157,255,.10),0 6px 18px -10px rgba(91,157,255,.6)!important;}
+#view-dashboard .itab.active{background:rgba(91,157,255,.10)!important;color:var(--blue)!important;border-color:rgba(91,157,255,.30)!important;box-shadow:0 6px 18px -12px rgba(91,157,255,.55)!important;}
+#view-dashboard .live-dot,#view-dashboard .dot,#view-dashboard .user-dot{box-shadow:0 0 10px rgba(61,220,132,.7)!important;}
+#view-dashboard .score-ring{filter:drop-shadow(0 0 14px rgba(91,157,255,.35));}
+#view-dashboard #alignmentBar{background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border-color:var(--border)!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 18px 40px -30px rgba(91,157,255,.3)!important;}
 
 /* ══ ADMIN ════════════════════════════════════════════════ */
 .admin-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:10px;}
@@ -557,7 +579,7 @@ input,button{font-family:var(--font-sans);}
 
       <div class="feat reveal">
         <div class="fx">
-          <div class="fx-ico">🎯</div>
+          <div class="fx-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".7" fill="var(--blue)" stroke="none"/></svg></div>
           <h3>Signal Constellation</h3>
           <p>Every model plotted on one map — bias against conviction. See at a glance where the weight of evidence sits, from high-conviction bullish to low-conviction noise.</p>
           <ul>
@@ -571,7 +593,7 @@ input,button{font-family:var(--font-sans);}
 
       <div class="feat rev reveal">
         <div class="fx">
-          <div class="fx-ico">🧭</div>
+          <div class="fx-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><polygon points="15.6,8.4 10.4,10.4 8.4,15.6 13.6,13.6" fill="var(--blue)" stroke="none"/></svg></div>
           <h3>Regime Detection</h3>
           <p>Goldilocks, Reflation, Stagflation or Deflation — classified automatically from live FRED growth and inflation data, then translated into a strategy stance.</p>
           <ul>
@@ -585,7 +607,7 @@ input,button{font-family:var(--font-sans);}
 
       <div class="feat reveal">
         <div class="fx">
-          <div class="fx-ico">⚡</div>
+          <div class="fx-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(91,157,255,.18)" stroke="var(--blue)" stroke-width="1.6" stroke-linejoin="round"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg></div>
           <h3>Dealer Greeks &amp; Walls</h3>
           <p>Where dealers are forced to hedge is where price gets pinned — or where it breaks. Net gamma, delta, vanna and charm exposure with call &amp; put walls and the gamma flip, converted to ES/NQ levels.</p>
           <ul>
@@ -599,7 +621,7 @@ input,button{font-family:var(--font-sans);}
 
       <div class="feat rev reveal">
         <div class="fx">
-          <div class="fx-ico">📐</div>
+          <div class="fx-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2 4.5-6.5"/></svg></div>
           <h3>Intraday Levels &amp; VWAP σ-Bands</h3>
           <p>Session-anchored VWAP with true volume-weighted σ-bands (±1/2/3σ) computed on real ES &amp; NQ futures bars — plus prior-day and overnight high/low/close.</p>
           <ul>
@@ -736,7 +758,7 @@ input,button{font-family:var(--font-sans);}
     <div class="panel" style="margin-bottom:12px;">
       <div class="plabel">CONTACT</div>
       <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:2.4;">
-        <div>📧 <a href="mailto:support@alpha-bias.com" style="color:var(--blue);">support@alpha-bias.com</a></div>
+        <div><a href="mailto:support@alpha-bias.com" style="color:var(--blue);">support@alpha-bias.com</a></div>
         <div>⏱ Response time: within 24 hours</div>
       </div>
     </div>
@@ -845,6 +867,8 @@ input,button{font-family:var(--font-sans);}
 
 <!-- ══════════════ DASHBOARD ══════════════ -->
 <div class="view" id="view-dashboard">
+  <div class="db-grid"></div>
+  <div class="db-aurora"></div>
   <nav class="dash-nav">
     <div class="dash-logo">ALPHA·BIAS</div>
     <div class="dash-nav-tabs">
@@ -1554,10 +1578,10 @@ input,button{font-family:var(--font-sans);}
       <div class="panel">
         <div class="plabel">DATA SOURCES</div>
         <div style="font-size:10px;color:var(--muted);line-height:2.2;margin-top:8px;">
-          <div>📡 FRED API — VIX, 10Y/2Y Yields, DXY, HY Spreads</div>
-          <div>📋 CFTC — COT Report (updated every Friday 15:30 ET)</div>
-          <div>🔄 Macro auto-refresh every 5min · GEX every minute</div>
-          <div>⚠️ Not financial advice. For informational purposes only.</div>
+          <div>FRED API — VIX, 10Y/2Y Yields, DXY, HY Spreads</div>
+          <div>CFTC — COT Report (updated every Friday 15:30 ET)</div>
+          <div>Macro auto-refresh every 5min · GEX every minute</div>
+          <div>Not financial advice. For informational purposes only.</div>
         </div>
       </div>
     </div>
@@ -1850,7 +1874,7 @@ function computeBias(instrument) {
     ];
     macroScore = 0.25*yc_s + 0.18*vix_s + 0.12*dxy_s + 0.10*hy_s;
     if(m.vix!==null){const b=m.vix<20;pts.push({x:72,y:b?55:-50,bull:b,size:10,label:'VIX'});pills.push({t:'VIX '+(m.vix<15?'LOW':m.vix<25?'NORMAL':'HIGH'),c:m.vix<20?'bull':m.vix<28?'neut':'bear'});}
-    if(m.yc!==null){const b=m.yc>0.5;pts.push({x:80,y:b?60:-40,bull:b,size:9,label:'YC'});pills.push({t:m.yc>1.5?'EXPANSION':m.yc>0?'NORMAL YC':m.yc>-0.5?'FLAT YC':'INVERTED ⚠',c:m.yc>1?'bull':m.yc>0?'neut':'bear'});}
+    if(m.yc!==null){const b=m.yc>0.5;pts.push({x:80,y:b?60:-40,bull:b,size:9,label:'YC'});pills.push({t:m.yc>1.5?'EXPANSION':m.yc>0?'NORMAL YC':m.yc>-0.5?'FLAT YC':'INVERTED ',c:m.yc>1?'bull':m.yc>0?'neut':'bear'});}
     if(m.dxy!==null){const b=m.dxy<103;pts.push({x:62,y:b?45:-35,bull:b,size:8,label:'DXY'});pills.push({t:'DXY '+(b?'WEAK':'STRONG'),c:b?'bull':'bear'});}
     if(m.hy!==null){const b=m.hy<400;pts.push({x:65,y:b?38:-42,bull:b,size:8,label:'CREDIT'});pills.push({t:m.hy<300?'CREDIT TIGHT':m.hy<500?'CREDIT NORM':'CREDIT RISK',c:m.hy<400?'bull':m.hy<600?'neut':'bear'});}
   }
@@ -2047,9 +2071,9 @@ function renderBias() {
       {name:'VIX',val:m.vix!==null?fmt(m.vix,1):'—',dir:m.vix?(m.vix<20?'down':'up'):null,note:m.vix?(m.vix<15?'Low vol · mean rev':m.vix<25?'Normal range':'Elevated · trend'):'—'},
       {name:'10Y YIELD',val:m.t10!==null?fmt(m.t10)+'%':'—',dir:m.t10?(m.t10>4.5?'up':'down'):null,note:m.t10?(m.t10>4.5?'High · growth pressure':'Moderate'):'—'},
       {name:'2Y YIELD',val:m.t2!==null?fmt(m.t2)+'%':'—',dir:null,note:'Fed policy proxy'},
-      {name:'YIELD CURVE',val:m.yc!==null?fmt(m.yc)+'%':'—',dir:m.yc?(m.yc>0.5?'up':m.yc<0?'bear':null):null,note:m.yc!==null?(m.yc>1.5?'Expansion':m.yc>0?'Normal':m.yc>-0.5?'Flat':'Inverted ⚠'):'—'},
+      {name:'YIELD CURVE',val:m.yc!==null?fmt(m.yc)+'%':'—',dir:m.yc?(m.yc>0.5?'up':m.yc<0?'bear':null):null,note:m.yc!==null?(m.yc>1.5?'Expansion':m.yc>0?'Normal':m.yc>-0.5?'Flat':'Inverted '):'—'},
       {name:'DXY',val:m.dxy!==null?fmt(m.dxy,1):'—',dir:m.dxy?(m.dxy>104?'up':'down'):null,note:m.dxy?(m.dxy>105?'USD strong':m.dxy<100?'USD weak':'Neutral'):'—'},
-      {name:'HY SPREAD',val:m.hy!==null?fmt(m.hy,0)+'bp':'—',dir:m.hy?(m.hy>500?'up':'down'):null,note:m.hy?(m.hy<300?'Low risk':m.hy<500?'Normal':m.hy<800?'Elevated':'Crisis ⚠'):'—'},
+      {name:'HY SPREAD',val:m.hy!==null?fmt(m.hy,0)+'bp':'—',dir:m.hy?(m.hy>500?'up':'down'):null,note:m.hy?(m.hy<300?'Low risk':m.hy<500?'Normal':m.hy<800?'Elevated':'Crisis '):'—'},
       {name:'INDPRO YoY',val:m.indpro!==null?fmt(m.indpro,2)+'%':'—',dir:m.indpro!=null?(m.indpro>0?'up':'down'):null,note:m.indpro!=null?(m.indpro>0?'Growth expanding':'Growth contracting'):'—'},
       {name:'CPI YoY',val:m.cpi!==null?fmt(m.cpi,2)+'%':'—',dir:m.cpi?(m.cpi>3?'up':'down'):null,note:m.cpi?(m.cpi>4?'High inflation':m.cpi>2.5?'Elevated':'Contained'):'—'},
     ];
@@ -2186,7 +2210,7 @@ function renderGEXPanel(symbol, data, panelId, updatedId) {
     <div style="margin-top:8px;padding:8px;background:var(--bg3);border-radius:4px;font-size:9px;color:var(--muted);">
       ${data.net_gex_label === 'positive'
         ? '✓ Dealers absorbing moves · Expect range-bound action · Mean reversion setups favored'
-        : '⚡ Dealers amplifying moves · Expect trending action · Momentum setups favored'}
+        : 'Dealers amplifying moves · Expect trending action · Momentum setups favored'}
     </div>`;
 }
 
@@ -2457,36 +2481,36 @@ function renderSessionCheck() {
 
     // GEX Regime
     if (regime.includes('positive')) {
-      gexLines.push('📌 GEX POSITIVE — Dealers long gamma → market pinned, reversions favored');
+      gexLines.push('GEX POSITIVE — Dealers long gamma → market pinned, reversions favored');
     } else if (regime.includes('negative')) {
-      gexLines.push('⚡ GEX NEGATIVE — Dealers short gamma → moves accelerate, trending favored');
+      gexLines.push('GEX NEGATIVE — Dealers short gamma → moves accelerate, trending favored');
     }
 
     // Gamma Flip
     if (atFlip) {
-      gexLines.push(`🔀 AT GAMMA FLIP (${fmt(flip)}) — Key inflection zone, direction unclear. Wait for break + confirm`);
+      gexLines.push(`AT GAMMA FLIP (${fmt(flip)}) — Key inflection zone, direction unclear. Wait for break + confirm`);
     } else if (aboveFlip) {
-      gexLines.push(`✅ Above gamma flip (${fmt(flip)}) — Bullish structural. Dealers support dips`);
+      gexLines.push(`Above gamma flip (${fmt(flip)}) — Bullish structural. Dealers support dips`);
     } else if (aboveFlip === false) {
-      gexLines.push(`🔻 Below gamma flip (${fmt(flip)}) — Bearish structural. Dealers amplify selling`);
+      gexLines.push(`Below gamma flip (${fmt(flip)}) — Bearish structural. Dealers amplify selling`);
     }
 
     // Call Wall — Magnet from below, Resistance from above
     if (aboveCall && callWall) {
-      gexLines.push(`🚀 ABOVE CALL WALL (${fmt(callWall)}) — Resistance broken. Dealers forced to buy delta → strong momentum move upward. Ride trend, trail stops`);
+      gexLines.push(`ABOVE CALL WALL (${fmt(callWall)}) — Resistance broken. Dealers forced to buy delta → strong momentum move upward. Ride trend, trail stops`);
     } else if (nearCall && callWall) {
       const dist = (callWall - esPrice).toFixed(0);
-      gexLines.push(`🧲 NEAR CALL WALL (${fmt(callWall)}, +${dist} pts) — Acting as magnet pulling price higher. Once reached expect either: slow grind through with momentum OR sharp rejection. Do not chase — wait for reaction at the wall`);
+      gexLines.push(`NEAR CALL WALL (${fmt(callWall)}, +${dist} pts) — Acting as magnet pulling price higher. Once reached expect either: slow grind through with momentum OR sharp rejection. Do not chase — wait for reaction at the wall`);
     } else if (callWall && esPrice < callWall) {
       const dist = (callWall - esPrice).toFixed(0);
       gexLines.push(`Call wall ${fmt(callWall)} (+${dist} pts above) — Upside target. Price attracted toward it in positive GEX`);
     }
 
     if (belowPut && putWall) {
-      gexLines.push(`🚨 BELOW PUT WALL (${fmt(putWall)}) — Put wall breached. Dealer hedging support removed, downside accelerates. Avoid longs until price reclaims the put wall`);
+      gexLines.push(`BELOW PUT WALL (${fmt(putWall)}) — Put wall breached. Dealer hedging support removed, downside accelerates. Avoid longs until price reclaims the put wall`);
     } else if (nearPut && putWall) {
       const dist = (esPrice - putWall).toFixed(0);
-      gexLines.push(`🛡️ NEAR PUT WALL (${fmt(putWall)}, -${dist} pts) — Put wall acting as strong support. Dealers buy aggressively at this level. High probability bounce — favored long entry with stop below the put wall`);
+      gexLines.push(`NEAR PUT WALL (${fmt(putWall)}, -${dist} pts) — Put wall acting as strong support. Dealers buy aggressively at this level. High probability bounce — favored long entry with stop below the put wall`);
     } else if (putWall && esPrice > putWall) {
       const dist = (esPrice - putWall).toFixed(0);
       gexLines.push(`Put wall ${fmt(putWall)} (-${dist} pts below) — Put wall provides strong dealer-driven support if tested`);
@@ -2494,25 +2518,25 @@ function renderSessionCheck() {
 
     // Special combinations
     if (betweenWalls && regime.includes('positive')) {
-      gexLines.push('📎 Pinned between walls in positive GEX → tight range likely. Fade extremes. Avoid chasing breakouts without volume');
+      gexLines.push('Pinned between walls in positive GEX → tight range likely. Fade extremes. Avoid chasing breakouts without volume');
     }
     if (nearCall && macroScore > 0.2) {
-      gexLines.push('💡 Bullish macro + near call wall → if bias holds, wall may act as launchpad for breakout. Watch volume — confirm before adding size');
+      gexLines.push('Bullish macro + near call wall → if bias holds, wall may act as launchpad for breakout. Watch volume — confirm before adding size');
     }
     if (nearCall && macroScore < -0.2) {
-      gexLines.push('⚠️ Bearish macro + near call wall → resistance reinforced by both GEX and macro. High probability rejection zone — look for short entries');
+      gexLines.push('Bearish macro + near call wall → resistance reinforced by both GEX and macro. High probability rejection zone — look for short entries');
     }
     if (nearPut && macroScore < -0.2) {
-      gexLines.push('💡 Bearish macro + near put wall → floor may hold short term but bias is down. Sell bounces from put wall, floor likely breaks eventually');
+      gexLines.push('Bearish macro + near put wall → floor may hold short term but bias is down. Sell bounces from put wall, floor likely breaks eventually');
     }
     if (nearPut && macroScore > 0.2) {
-      gexLines.push('💡 Bullish macro + near put wall → strong entry zone. GEX floor + bullish bias = high probability bounce. Look for longs with tight stop below wall');
+      gexLines.push('Bullish macro + near put wall → strong entry zone. GEX floor + bullish bias = high probability bounce. Look for longs with tight stop below wall');
     }
     if (aboveFlip && regime.includes('positive') && betweenWalls) {
-      gexLines.push('✅ Ideal bullish setup: above flip, positive GEX, between walls → mean reversion to call wall favored. Buy dips');
+      gexLines.push('Ideal bullish setup: above flip, positive GEX, between walls → mean reversion to call wall favored. Buy dips');
     }
     if (!aboveFlip && regime.includes('negative')) {
-      gexLines.push('⚡ Double bearish GEX: below flip + negative regime → moves amplified to downside. Reduce long exposure');
+      gexLines.push('Double bearish GEX: below flip + negative regime → moves amplified to downside. Reduce long exposure');
     }
   }
 
@@ -3401,7 +3425,7 @@ function renderStructureRead() {
     <div style="font-size:8px;color:var(--dim);letter-spacing:1px;margin-bottom:3px;">REGIME EVENTS · RECENT</div>
     ${events.map(e => `<div style="display:flex;gap:8px;align-items:center;padding:3px 8px;background:var(--bg2);border-radius:3px;margin-bottom:2px;border-left:2px solid #f59e0b;">
       <span style="font-size:8px;font-family:monospace;color:var(--dim);">${new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span>
-      <span style="font-size:9.5px;color:#f59e0b;font-weight:700;">${e.type === 'GEX_FLIP' ? '⚡' : '↕'}</span>
+      <span style="font-size:9.5px;color:#f59e0b;font-weight:700;">${e.type === 'GEX_FLIP' ? '' : '↕'}</span>
       <span style="font-size:9.5px;color:var(--text);">${e.msg}</span>
     </div>`).join('')}
   </div>` : '';
@@ -3876,7 +3900,7 @@ document.querySelectorAll('.q button').forEach(b=>{b.addEventListener('click',()
 <div id="maintenanceModal" role="dialog" aria-modal="true" aria-labelledby="mntTitle" onclick="if(event.target===this)dismissMaintenance()">
   <div class="mnt-card">
     <div class="mnt-badge">● SYSTEM STATUS</div>
-    <div class="mnt-ico">🛠️</div>
+    <div class="mnt-ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
     <h3 id="mntTitle">Under Maintenance</h3>
     <p>We're performing scheduled maintenance right now. Some data and features may be temporarily delayed or unavailable. Thanks for your patience — the terminal stays accessible.</p>
     <button type="button" onclick="dismissMaintenance()">Got it</button>
