@@ -1182,6 +1182,11 @@ input,button{font-family:var(--font-sans);}
       <span id="regime-updated" style="color:var(--dim);font-size:9px;margin-left:12px;align-self:center;"></span>
     </div>
     <div class="ptitle" style="margin:0 0 10px 2px;">Every readout carries what it is worth as a decision, measured on NQ 2010–2026 (~665 recorded tests). State is real and forecastable; its value as a participate/skip gate measured zero against a random veto in every test but one.</div>
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="plabel">INTRADAY REGIME · LIVE</div>
+      <div class="ptitle">Current dealer-gamma regime + structural tilt — derived from live options GEX (works now, no futures feed needed)</div>
+      <div id="rg-intraday" style="margin-top:10px;"></div>
+    </div>
     <div class="grid-2col" style="margin-bottom:12px;">
       <div class="panel">
         <div class="plabel">COMPRESSION · THE ONE THAT SELECTS</div>
@@ -2654,7 +2659,7 @@ async function showDashPage(page, el) {
     await loadGEX();
     renderSessionCheck();
   }
-  if (page === 'regime') { await loadRegime(); }
+  if (page === 'regime') { await loadGEX(); await loadRegime(); }
 }
 
 // ══ REGIME PAGE ══ (server: /api/regime, classifier: regime.js — every readout carries its measured decision value)
@@ -2670,10 +2675,50 @@ function rgAddLevel() {
 }
 function rgRow(label, val, cls) { return `<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--border2);"><span style="color:var(--muted);font-size:10px;">${label}</span><span class="metric-val" style="font-size:13px;${cls ? 'color:var(--' + cls + ')' : ''}">${val ?? '—'}</span></div>`; }
 function rgNote(t, cls) { return `<div style="margin-top:8px;font-size:10.5px;line-height:1.45;color:var(--${cls || 'dim'});">${t}</div>`; }
+
+// Live intraday-regime classification from dealer positioning (GEX). Works WITHOUT ProjectX —
+// gamma sign is the classic intraday regime switch; structure/vol/charm refine it.
+function renderGexRegime() {
+  const el = document.getElementById('rg-intraday');
+  if (!el) return;
+  const g = (window.gexCache && window.gexCache[regimeInst]) ? window.gexCache[regimeInst] : null;
+  const price = window.priceCache ? window.priceCache[regimeInst] : null;
+  if (!g || g.net_gex == null) { el.innerHTML = '<div style="color:var(--dim);font-size:11px;padding:6px 0;">Waiting for dealer-gamma data (GEX)…</div>'; return; }
+
+  const longGamma = (g.net_gex_label || (g.net_gex > 0 ? 'positive' : 'negative')) === 'positive';
+  const flip = g.gamma_flip, cw = g.call_wall, pw = g.put_wall, em = g.expected_move, iv = g.atm_iv;
+  const aboveFlip = (price != null && flip) ? price > flip : null;
+  const regime = longGamma
+    ? { tag: 'MEAN-REVERSION', sub: 'LONG GAMMA · volatility dampened', col: 'var(--bull)' }
+    : { tag: 'TREND / EXPANSION', sub: 'SHORT GAMMA · volatility amplified', col: 'var(--bear)' };
+  let tilt = 'NEUTRAL STRUCTURE', tiltCol = 'var(--neut)';
+  if (aboveFlip === true) { tilt = 'BULLISH TILT'; tiltCol = 'var(--bull)'; }
+  else if (aboveFlip === false) { tilt = 'BEARISH TILT'; tiltCol = 'var(--bear)'; }
+
+  const pts = [];
+  pts.push(longGamma
+    ? 'Dealers are long gamma — hedging absorbs moves. Expect range / pinning; fade extremes back toward the flip and walls, don’t chase breakouts.'
+    : 'Dealers are short gamma — hedging accelerates moves. Expect trending / expansion; breakouts run, respect momentum, widen stops.');
+  if (flip && price != null) pts.push(`Price ${aboveFlip ? 'above' : 'below'} gamma flip (${flip.toFixed(2)}) — ${aboveFlip ? 'dealers support dips, structurally firm' : 'dealers press rallies, structurally weak'}.`);
+  if (cw && pw) pts.push(`${longGamma ? 'Range boundaries' : 'Breakout triggers'}: call wall ${cw.toFixed(2)} above, put wall ${pw.toFixed(2)} below.`);
+  if (em) pts.push(`Options price an expected move of ±${em.toFixed(1)} pts today${iv ? ` · ATM IV ${iv.toFixed(1)}%` : ''}.`);
+  if (g.net_charm != null && g.dte != null && g.dte <= 1) pts.push(`0DTE charm ${g.net_charm > 0 ? 'positive — supportive drift' : 'negative — drift / pressure'} into the close.`);
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;">
+      <span style="font-size:20px;font-weight:800;letter-spacing:.02em;color:${regime.col};">${regime.tag}</span>
+      <span class="metric-val" style="font-size:11px;color:var(--dim);">${regime.sub}</span>
+      <span style="margin-left:auto;font-size:12px;font-weight:700;color:${tiltCol};">${tilt}</span>
+    </div>
+    ${pts.map(p => `<div style="padding:6px 10px;margin-bottom:5px;background:var(--bg2);border-radius:4px;border-left:2px solid ${regime.col};font-size:11px;line-height:1.5;">${p}</div>`).join('')}
+    <div style="font-size:9px;color:var(--dim);margin-top:8px;">Derived from live dealer positioning (options GEX). The session-profile panels below activate when the futures feed (ProjectX) returns.</div>`;
+}
+
 function renderRegime() {
+  renderGexRegime(); // live GEX intraday regime — independent of ProjectX
   const r = regimeData && regimeData[regimeInst];
   const upd = document.getElementById('regime-updated');
-  if (!r) { if (upd) upd.textContent = regimeData?.error ? ('unavailable: ' + regimeData.error) : 'loading…'; return; }
+  if (!r) { if (upd) upd.textContent = regimeData?.error ? 'live intraday regime shown · session panels need futures feed' : 'session panels: loading…'; return; }
   if (upd) upd.textContent = 'session ' + r.session + ' · updated ' + new Date(regimeData.updatedAt).toLocaleTimeString();
   const c = r.compression;
   document.getElementById('rg-compression').innerHTML =
@@ -2727,6 +2772,7 @@ async function loadGEX() {
     renderCharmPanel();
     renderStructureRead();
     renderTechPage();
+    if (typeof renderGexRegime === 'function') renderGexRegime(); // live intraday regime on REGIME tab
     // refresh session check panels if visible
     if (document.getElementById('dash-session')?.classList.contains('active')) renderSessionCheck();
     if (typeof renderGEXPanel === 'function') {
