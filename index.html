@@ -1181,68 +1181,10 @@ input,button{font-family:var(--font-sans);}
       <div class="itab" onclick="setRegimeInst('ES',this)">ES · S&amp;P 500</div>
       <span id="regime-updated" style="color:var(--dim);font-size:9px;margin-left:12px;align-self:center;"></span>
     </div>
-    <div class="ptitle" style="margin:0 0 10px 2px;">Every readout carries what it is worth as a decision, measured on NQ 2010–2026 (~665 recorded tests). State is real and forecastable; its value as a participate/skip gate measured zero against a random veto in every test but one.</div>
     <div class="panel" style="margin-bottom:12px;">
       <div class="plabel">INTRADAY REGIME · LIVE</div>
-      <div class="ptitle">Current dealer-gamma regime + structural tilt — derived from live options GEX (works now, no futures feed needed)</div>
+      <div class="ptitle">Current dealer-gamma regime + structural tilt — derived from live options positioning</div>
       <div id="rg-intraday" style="margin-top:10px;"></div>
-    </div>
-    <div class="grid-2col" style="margin-bottom:12px;">
-      <div class="panel">
-        <div class="plabel">COMPRESSION · THE ONE THAT SELECTS</div>
-        <div class="ptitle">Trailing-60-session percentile of the 04:00–09:30 premarket range ÷ premarket close · compress50 = ≤ 0.50, never tuned</div>
-        <div id="rg-compression" style="margin-top:10px;"></div>
-      </div>
-      <div class="panel">
-        <div class="plabel">CALENDAR · SCHEDULED PREMIUM</div>
-        <div class="ptitle">Event night into FOMC / NFP / CPI / PPI · OPEX · quad witching · roll week</div>
-        <div id="rg-calendar" style="margin-top:10px;"></div>
-      </div>
-    </div>
-    <div class="grid-2col" style="margin-bottom:12px;">
-      <div class="panel">
-        <div class="plabel">VOLATILITY STATE · RANGE EXPECTATION</div>
-        <div class="ptitle">RTH range percentile · causal HAR next-session range · ATR20 — sizing, not a gate</div>
-        <div id="rg-vol" style="margin-top:10px;"></div>
-      </div>
-      <div class="panel">
-        <div class="plabel">DEALER GAMMA · RANGE ONLY</div>
-        <div class="ptitle">Short gamma ⇒ wider next session (381 vs 257 pts, t +7.56) · directional value: null</div>
-        <div id="rg-gamma" style="margin-top:10px;"></div>
-      </div>
-    </div>
-    <div class="grid-2col" style="margin-bottom:12px;">
-      <div class="panel">
-        <div class="plabel">JUMP RISK (PROXY) · INVERTED FOR BREAKOUTS</div>
-        <div class="ptitle">Overnight gap in ATR20 + premarket realised vol vs its median</div>
-        <div id="rg-jump" style="margin-top:10px;"></div>
-      </div>
-      <div class="panel">
-        <div class="plabel">BALANCE · STAND-DOWN</div>
-        <div class="ptitle">≥ 45 min after the open ∧ ≥ 2 POC rotations ∧ developing range ÷ ATR14 ≤ 0.6 — discipline, not alpha</div>
-        <div id="rg-balance" style="margin-top:10px;"></div>
-      </div>
-    </div>
-    <div class="grid-2col" style="margin-bottom:12px;">
-      <div class="panel">
-        <div class="plabel">TREND · OBSERVATION ONLY</div>
-        <div class="ptitle">10-session efficiency ratio · 200-day MA — every hidden state fitted was a volatility state (11.4×)</div>
-        <div id="rg-trend" style="margin-top:10px;"></div>
-      </div>
-      <div class="panel">
-        <div class="plabel">SCALE MONITOR · YOUR LEVELS IN ATR UNITS</div>
-        <div class="ptitle">An absolute threshold is a date filter (every live constant drifted −43% in ATR units)</div>
-        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
-          <input id="rg-level-name" placeholder="name (e.g. stop)" style="flex:1;min-width:90px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:4px;">
-          <input id="rg-level-pts" placeholder="points" type="number" style="width:90px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:4px;">
-          <button class="dash-btn" onclick="rgAddLevel()">ADD</button>
-        </div>
-        <div id="rg-scale" style="margin-top:10px;"></div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="plabel">HONESTY BLOCK</div>
-      <div id="rg-honesty" style="margin-top:8px;"></div>
     </div>
   </div>
 
@@ -2711,7 +2653,7 @@ function renderGexRegime() {
       <span style="margin-left:auto;font-size:12px;font-weight:700;color:${tiltCol};">${tilt}</span>
     </div>
     ${pts.map(p => `<div style="padding:6px 10px;margin-bottom:5px;background:var(--bg2);border-radius:4px;border-left:2px solid ${regime.col};font-size:11px;line-height:1.5;">${p}</div>`).join('')}
-    <div style="font-size:9px;color:var(--dim);margin-top:8px;">Derived from live dealer positioning (options GEX). The session-profile panels below activate when the futures feed (ProjectX) returns.</div>`;
+    <div style="font-size:9px;color:var(--dim);margin-top:8px;">Derived from live dealer positioning (options GEX), refreshed through the session.</div>`;
 }
 
 function renderRegime() {
@@ -2720,38 +2662,42 @@ function renderRegime() {
   const upd = document.getElementById('regime-updated');
   if (!r) { if (upd) upd.textContent = regimeData?.error ? 'live intraday regime shown · session panels need futures feed' : 'session panels: loading…'; return; }
   if (upd) upd.textContent = 'session ' + r.session + ' · updated ' + new Date(regimeData.updatedAt).toLocaleTimeString();
+  // null-safe writes: the session panels are currently hidden (only the INTRADAY REGIME
+  // box is shown) but the full engine + render logic is kept intact so they can be
+  // restored anytime just by re-adding the panel divs — no logic change needed.
+  const set = (id, html) => { const e = document.getElementById(id); if (e) e.innerHTML = html; };
   const c = r.compression;
-  document.getElementById('rg-compression').innerHTML =
+  set('rg-compression',
     rgRow('pmv_pct', c.pmv_pct) + rgRow('compress50', c.compress50 === null ? '—' : (c.compress50 ? 'ON' : 'OFF'), c.compress50 ? 'bull' : 'bear') +
-    rgNote(c.reading, 'text') + rgNote(c.decision_value);
+    rgNote(c.reading, 'text') + rgNote(c.decision_value));
   const k = r.calendar;
-  document.getElementById('rg-calendar').innerHTML =
+  set('rg-calendar',
     rgRow('event night tonight', k.event_night_tonight.length ? k.event_night_tonight.join(', ') : 'no', k.event_night_tonight.length ? 'neut' : null) +
     rgRow('release today', k.release_today.length ? k.release_today.join(', ') : 'no') +
     rgRow('overnight premium (pts)', k.overnight_premium_pts) +
     rgRow('opex / quad / roll week', `${k.opex ? 'OPEX ' : ''}${k.quad_witch ? 'QUAD ' : ''}${k.roll_week ? 'ROLL' : ''}`.trim() || '—') +
-    k.notes.filter(Boolean).map(n => rgNote('· ' + n)).join('');
+    k.notes.filter(Boolean).map(n => rgNote('· ' + n)).join(''));
   const v = r.volatility;
-  document.getElementById('rg-vol').innerHTML =
+  set('rg-vol',
     rgRow('state', `${v.state} (pct ${v.pct ?? '—'})`, v.state === 'HIGH' ? 'neut' : null) + rgRow('last RTH range (pts)', v.last_range_pts) +
-    rgRow('HAR next-session range (pts)', v.har_next_range_pts) + rgRow('ATR20 (pts)', v.atr20_pts) + rgNote(v.decision_value || '');
+    rgRow('HAR next-session range (pts)', v.har_next_range_pts) + rgRow('ATR20 (pts)', v.atr20_pts) + rgNote(v.decision_value || ''));
   const g = r.gamma;
-  document.getElementById('rg-gamma').innerHTML =
-    rgRow('dealer gamma', g.sign ? g.sign.toUpperCase() : 'n/a', g.sign === 'short' ? 'neut' : null) + rgRow('next-range expectation (pts)', g.next_range_expectation_pts) + rgNote(g.decision_value);
+  set('rg-gamma',
+    rgRow('dealer gamma', g.sign ? g.sign.toUpperCase() : 'n/a', g.sign === 'short' ? 'neut' : null) + rgRow('next-range expectation (pts)', g.next_range_expectation_pts) + rgNote(g.decision_value));
   const j = r.jump_risk;
-  document.getElementById('rg-jump').innerHTML =
+  set('rg-jump',
     rgRow('level', j.level, j.level === 'HIGH' ? 'bull' : null) + rgRow('gap / ATR20', j.gap_atr20) + rgRow('premarket rv / median', j.premarket_rv_vs_median) +
-    rgNote(j.for_breakout_systems || '', 'text') + rgNote(j.for_mean_reversion || '');
+    rgNote(j.for_breakout_systems || '', 'text') + rgNote(j.for_mean_reversion || ''));
   const b = r.balance;
-  document.getElementById('rg-balance').innerHTML =
+  set('rg-balance',
     rgRow('in balance', b.in_balance ? 'YES' : 'no', b.in_balance ? 'neut' : null) + rgRow('minutes after open', b.minutes_after_open) +
-    rgRow('developing range / ATR14', b.developing_range_atr14) + rgRow('POC rotations', b.poc_rotations) + rgNote(b.decision_value || b.reason || '');
+    rgRow('developing range / ATR14', b.developing_range_atr14) + rgRow('POC rotations', b.poc_rotations) + rgNote(b.decision_value || b.reason || ''));
   const t = r.trend_observation;
-  document.getElementById('rg-trend').innerHTML = rgRow('efficiency ratio (10d)', t.efficiency_ratio_10d) + rgRow('above 200-day MA', t.above_200dma === null ? '—' : (t.above_200dma ? 'yes' : 'no')) + rgNote(t.reading);
+  set('rg-trend', rgRow('efficiency ratio (10d)', t.efficiency_ratio_10d) + rgRow('above 200-day MA', t.above_200dma === null ? '—' : (t.above_200dma ? 'yes' : 'no')) + rgNote(t.reading));
   const atr = r.scale.atr20_pts;
-  document.getElementById('rg-scale').innerHTML = rgRow('ATR20 (pts)', atr) +
-    regimeLevels.map(l => rgRow(l.n + ' · ' + l.p + ' pts', atr ? (l.p / atr).toFixed(3) + ' ATR' : '—')).join('') + rgNote(r.scale.rule);
-  document.getElementById('rg-honesty').innerHTML = r.honesty.map(h => rgNote('· ' + h)).join('');
+  set('rg-scale', rgRow('ATR20 (pts)', atr) +
+    regimeLevels.map(l => rgRow(l.n + ' · ' + l.p + ' pts', atr ? (l.p / atr).toFixed(3) + ' ATR' : '—')).join('') + rgNote(r.scale.rule));
+  set('rg-honesty', r.honesty.map(h => rgNote('· ' + h)).join(''));
 }
 setInterval(() => { if (document.getElementById('dash-regime')?.classList.contains('active')) loadRegime(); }, 60 * 1000);
 
