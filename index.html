@@ -1499,35 +1499,6 @@ input,button{font-family:var(--font-sans);}
         </div>
       </div>
 
-      <!-- BIAS-ADJUSTED SIZING -->
-      <div class="panel" style="grid-column:1/-1;">
-        <div class="plabel">BIAS-ADJUSTED POSITION SIZING</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:8px;margin-bottom:12px;">
-          Based on current macro bias — adjust your risk accordingly
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;" id="bias-sizing-grid">
-          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center;">
-            <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">BIAS SCORE</div>
-            <div style="font-size:20px;font-weight:700;color:var(--blue);" id="calc-bias-score">—</div>
-          </div>
-          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center;">
-            <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">CONFLUENCE</div>
-            <div style="font-size:14px;font-weight:700;" id="calc-confluence">—</div>
-          </div>
-          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center;">
-            <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">SUGGESTED RISK</div>
-            <div style="font-size:20px;font-weight:700;color:#22c55e;" id="calc-suggested-risk">—</div>
-          </div>
-          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center;">
-            <div style="font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;">REGIME</div>
-            <div style="font-size:11px;font-weight:700;" id="calc-regime">—</div>
-          </div>
-        </div>
-        <div style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:4px;font-size:10px;color:var(--muted);line-height:1.7;" id="calc-note">
-          Load macro bias data to see position sizing recommendation.
-        </div>
-      </div>
-
     </div>
   </div>
 
@@ -2919,6 +2890,7 @@ function updateBiasCalc() {
     note = 'CAUTION — Bias against you or conflicted. Minimum size only. Consider sitting out this session.';
   }
 
+  if (!document.getElementById('calc-bias-score')) return; // bias-sizing box removed — keep logic, skip render
   document.getElementById('calc-bias-score').textContent   = score + '/100';
   document.getElementById('calc-bias-score').style.color   = col;
   document.getElementById('calc-confluence').textContent   = score > 60 ? 'HIGH' : score > 50 ? 'MODERATE' : 'LOW';
