@@ -1608,7 +1608,7 @@ let activePromo = null;
 
 // ── View Routing ──────────────────────────────────────────
 // ── Maintenance notice (dismissible, dashboard only). Set MAINTENANCE_MODE=false to turn it off. ──
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 function maybeShowMaintenance(){ if(!MAINTENANCE_MODE) return; try{ if(sessionStorage.getItem("mnt_dismissed")) return; }catch(e){} var m=document.getElementById("maintenanceModal"); if(m) m.style.display="flex"; }
 function dismissMaintenance(){ var m=document.getElementById("maintenanceModal"); if(m) m.style.display="none"; try{ sessionStorage.setItem("mnt_dismissed","1"); }catch(e){} }
 
