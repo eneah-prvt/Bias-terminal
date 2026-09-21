@@ -325,9 +325,7 @@ input,button{font-family:var(--font-sans);}
 @media(max-width:900px){#view-dashboard .dhero{grid-template-columns:1fr;gap:22px;}#view-dashboard .fgrid{grid-template-columns:1fr;}#view-dashboard .macro-g{grid-template-columns:1fr 1fr!important;}}
 
 /* ═══ PREMIUM SKIN — landing theme on dashboard (grid + aurora + neon) ═══ */
-#view-dashboard .db-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);
-  background-size:54px 54px;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 42%,transparent 92%);mask-image:linear-gradient(180deg,#000 0%,#000 42%,transparent 92%);}
+#view-dashboard .db-grid{display:none}
 #view-dashboard .db-aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
 #view-dashboard .db-aurora::before,#view-dashboard .db-aurora::after{content:"";position:absolute;border-radius:50%;filter:blur(130px);opacity:.4;}
 #view-dashboard .db-aurora::before{width:640px;height:640px;left:-200px;top:-260px;background:radial-gradient(circle,rgba(91,157,255,.20),transparent 62%);}
@@ -363,9 +361,16 @@ input,button{font-family:var(--font-sans);}
 #view-landing .aurora::before,#view-landing .aurora::after{content:"";position:absolute;border-radius:50%;filter:blur(120px);opacity:.5}
 #view-landing .aurora::before{width:680px;height:680px;left:-180px;top:-220px;background:radial-gradient(circle,rgba(91,157,255,.22),transparent 62%)}
 #view-landing .aurora::after{width:620px;height:620px;right:-160px;top:260px;background:radial-gradient(circle,rgba(139,92,246,.18),transparent 62%)}
-#view-landing .grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);
-  background-size:52px 52px;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 42%,transparent 92%);mask-image:linear-gradient(180deg,#000 0%,#000 42%,transparent 92%)}
+#view-landing .grid-bg{display:none}
+#view-landing,#view-dashboard{
+  background-color:#080a0e!important;
+  background-image:
+    linear-gradient(180deg,rgba(8,10,14,0) 0%,rgba(8,10,14,0) 24%,#080a0e 88%),
+    linear-gradient(rgba(255,255,255,.10) 1.5px,transparent 1.5px),
+    linear-gradient(90deg,rgba(255,255,255,.10) 1.5px,transparent 1.5px)!important;
+  background-size:100% 100%,54px 54px,54px 54px!important;
+  background-attachment:fixed,fixed,fixed!important;
+  background-position:center top!important;}
 #view-landing main,#view-landing header,#view-landing footer{position:relative;z-index:1}
 #view-landing #lpProgress{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--blue),var(--purple));z-index:100;box-shadow:0 0 12px rgba(91,157,255,.6)}
 #view-landing header{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,border-color .3s,backdrop-filter .3s;border-bottom:1px solid transparent}
