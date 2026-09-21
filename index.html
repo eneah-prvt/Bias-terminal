@@ -979,23 +979,6 @@ input,button{font-family:var(--font-sans);}
           <div class="plabel">NY SESSION CONFLUENCE CHECK</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px;">How many signals align before you enter? Use as confirmation only.</div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div id="sc-score-ring" style="position:relative;width:70px;height:70px;flex-shrink:0;">
-            <svg width="70" height="70" viewBox="0 0 70 70" style="transform:rotate(-90deg);">
-              <circle cx="35" cy="35" r="28" fill="none" stroke="#1a2030" stroke-width="7"/>
-              <circle cx="35" cy="35" r="28" fill="none" stroke="#334" stroke-width="7"
-                stroke-dasharray="175.9" stroke-dashoffset="175" stroke-linecap="round" id="sc-ring"/>
-            </svg>
-            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
-              <div style="font-size:18px;font-weight:700;color:#334;" id="sc-score-num">—</div>
-              <div style="font-size:8px;color:#445;">/ 4</div>
-            </div>
-          </div>
-          <div>
-            <div style="font-size:20px;font-weight:700;" id="sc-label">LOADING...</div>
-            <div style="font-size:10px;color:var(--muted);" id="sc-sublabel">Calculating signals...</div>
-          </div>
-        </div>
       </div>
 
       <!-- Signal Pills -->
@@ -2432,20 +2415,8 @@ function renderSessionCheck() {
 
   confluenceScore = checks.filter(Boolean).length;
 
-  // Update score ring
-  const pct = confluenceScore / 4;
+  // Score ring removed — signals are read directly from the cards below.
   const ringCol = confluenceScore >= 3 ? '#22c55e' : confluenceScore >= 2 ? '#f59e0b' : '#ef4444';
-  const offset = 175.9 - (pct * 175.9);
-  document.getElementById('sc-ring').setAttribute('stroke', ringCol);
-  document.getElementById('sc-ring').setAttribute('stroke-dashoffset', offset.toFixed(1));
-  document.getElementById('sc-score-num').textContent = confluenceScore;
-  document.getElementById('sc-score-num').style.color = ringCol;
-
-  const scoreLabel = confluenceScore === 4 ? 'HIGH CONFLUENCE' : confluenceScore === 3 ? 'GOOD SETUP' : confluenceScore === 2 ? 'MIXED SIGNALS' : 'LOW CONFLUENCE';
-  const scoreSub = confluenceScore >= 3 ? 'Signals aligned — look for entry' : confluenceScore === 2 ? 'Wait for better setup or reduce size' : 'Avoid trading — signals conflicted';
-  document.getElementById('sc-label').textContent = scoreLabel;
-  document.getElementById('sc-label').style.color = ringCol;
-  document.getElementById('sc-sublabel').textContent = scoreSub;
 
   // ── Smart GEX + Price Analysis ─────────────────────────
   const rec = document.getElementById('sc-recommendation');
