@@ -283,14 +283,14 @@ input,button{font-family:var(--font-sans);}
 #view-dashboard .dash-page{padding:26px 26px 60px!important;max-width:1240px!important;}
 #view-dashboard .dash-nav{background:#0d0e10!important;border-bottom:1px solid var(--bd)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:11px 24px!important;}
 #view-dashboard .dash-logo{color:var(--text)!important;letter-spacing:.16em;background:none!important;-webkit-text-fill-color:currentColor!important;font-weight:800;}
-#view-dashboard .nav-tab{border-radius:7px!important;font-size:11px!important;padding:6px 13px!important;color:var(--dim)!important;border:1px solid transparent!important;}
+#view-dashboard .nav-tab{border-radius:5px!important;font-size:11px!important;padding:6px 13px!important;color:var(--dim)!important;border:1px solid transparent!important;}
 #view-dashboard .nav-tab.active{background:#1a1d22!important;color:var(--text)!important;border-color:transparent!important;}
 #view-dashboard .inst-tabs{gap:6px;margin-bottom:20px!important;}
-#view-dashboard .itab{border-radius:7px!important;font-size:12px!important;padding:7px 15px!important;background:transparent!important;border:1px solid var(--bd)!important;color:var(--dim)!important;}
+#view-dashboard .itab{border-radius:5px!important;font-size:12px!important;padding:7px 15px!important;background:transparent!important;border:1px solid var(--bd)!important;color:var(--dim)!important;}
 #view-dashboard .itab.active{background:#1a1d22!important;color:var(--text)!important;border-color:var(--bd)!important;}
 /* PREMIUM cards — gradient + neon glow (landing look) */
-#view-dashboard .panel,#view-dashboard .card{background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;background-image:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border:1px solid var(--border)!important;border-radius:10px!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 22px 44px -30px rgba(91,157,255,.30),inset 0 1px 0 rgba(255,255,255,.03)!important;padding:20px!important;position:relative;transition:border-color .2s,box-shadow .2s,transform .2s;}
-#view-dashboard .panel:hover,#view-dashboard .card:hover{border-color:rgba(91,157,255,.30)!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 26px 52px -26px rgba(91,157,255,.42),inset 0 1px 0 rgba(255,255,255,.04)!important;}
+#view-dashboard .panel,#view-dashboard .card{background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;background-image:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border:1px solid var(--border)!important;border-radius:6px!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 14px 30px -26px rgba(91,157,255,.14),inset 0 1px 0 rgba(255,255,255,.03)!important;padding:20px!important;position:relative;transition:border-color .2s,box-shadow .2s,transform .2s;}
+#view-dashboard .panel:hover,#view-dashboard .card:hover{border-color:rgba(91,157,255,.30)!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 16px 34px -24px rgba(91,157,255,.22),inset 0 1px 0 rgba(255,255,255,.04)!important;}
 #view-dashboard .panel::after,#view-dashboard .card::after{display:none!important;}
 #view-dashboard .plabel{font-size:10px!important;letter-spacing:.16em!important;color:var(--dim)!important;text-transform:uppercase;font-weight:600;margin-bottom:13px!important;}
 #view-dashboard .plabel::before{display:none!important;}
@@ -302,12 +302,12 @@ input,button{font-family:var(--font-sans);}
 #view-dashboard .mono,#view-dashboard .metric-val,#view-dashboard .score-lbl,#view-dashboard .macro-val,#view-dashboard .cot-val,#view-dashboard .cot-idx,#view-dashboard .comp-val,#view-dashboard .comp-raw,#view-dashboard [style*="monospace"]{font-family:'JetBrains Mono',ui-monospace,monospace!important;}
 /* macro tiles flat */
 #view-dashboard .macro-g{gap:9px!important;grid-template-columns:repeat(4,1fr)!important;}
-#view-dashboard .macro-item{background:var(--card2)!important;border:1px solid var(--bd2)!important;border-radius:8px!important;box-shadow:none!important;padding:12px!important;}
+#view-dashboard .macro-item{background:var(--card2)!important;border:1px solid var(--bd2)!important;border-radius:5px!important;box-shadow:none!important;padding:12px!important;}
 #view-dashboard .macro-name{font-size:9px!important;color:var(--dimmer)!important;letter-spacing:.06em;}
 #view-dashboard .macro-val{font-size:16px!important;margin-top:4px!important;}
 #view-dashboard .macro-sub{font-size:9px!important;color:var(--dimmer)!important;margin-top:4px!important;}
 /* HERO */
-#view-dashboard .dhero{display:grid;grid-template-columns:auto 1fr auto;gap:36px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:24px 28px;margin-bottom:16px;}
+#view-dashboard .dhero{display:grid;grid-template-columns:auto 1fr auto;gap:36px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:24px 28px;margin-bottom:16px;}
 #view-dashboard .dhero .score-ring{width:112px;height:112px;}
 #view-dashboard .dhero .score-ring svg{width:112px;height:112px;}
 #view-dashboard .dhero .score-lbl{font-size:30px!important;}
@@ -333,14 +333,14 @@ input,button{font-family:var(--font-sans);}
 #view-dashboard .dash-page,#view-dashboard #alignmentBar{position:relative;z-index:1;}
 #view-dashboard .dash-nav{z-index:100;background:rgba(9,11,15,.82)!important;-webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;}
 /* hero — strongest premium treatment */
-#view-dashboard .dhero{position:relative;background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border:1px solid var(--border)!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 30px 66px -30px rgba(91,157,255,.42),inset 0 1px 0 rgba(255,255,255,.04)!important;overflow:hidden;}
+#view-dashboard .dhero{position:relative;background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border:1px solid var(--border)!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 16px 36px -28px rgba(91,157,255,.18),inset 0 1px 0 rgba(255,255,255,.04)!important;overflow:hidden;}
 #view-dashboard .dhero::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue),var(--purple),transparent);opacity:.75;}
 /* neon accents */
 #view-dashboard .nav-tab.active{background:rgba(91,157,255,.10)!important;color:var(--blue)!important;border-color:rgba(91,157,255,.28)!important;box-shadow:0 0 0 1px rgba(91,157,255,.10),0 6px 18px -10px rgba(91,157,255,.6)!important;}
 #view-dashboard .itab.active{background:rgba(91,157,255,.10)!important;color:var(--blue)!important;border-color:rgba(91,157,255,.30)!important;box-shadow:0 6px 18px -12px rgba(91,157,255,.55)!important;}
 #view-dashboard .live-dot,#view-dashboard .dot,#view-dashboard .user-dot{box-shadow:0 0 10px rgba(61,220,132,.7)!important;}
-#view-dashboard .score-ring{filter:drop-shadow(0 0 14px rgba(91,157,255,.35));}
-#view-dashboard #alignmentBar{background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border-color:var(--border)!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 18px 40px -30px rgba(91,157,255,.3)!important;}
+#view-dashboard .score-ring{filter:drop-shadow(0 0 5px rgba(91,157,255,.12));}
+#view-dashboard #alignmentBar{background:linear-gradient(180deg,var(--bg2),var(--bg4))!important;border-color:var(--border)!important;box-shadow:0 1px 2px rgba(0,0,0,.4),0 12px 28px -24px rgba(91,157,255,.14)!important;}
 
 /* ══ ADMIN ════════════════════════════════════════════════ */
 .admin-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:10px;}
@@ -1630,14 +1630,19 @@ async function doLogin() {
   msg.className = 'auth-msg'; msg.textContent = '';
 
   try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    // Supabase's gateway sometimes hangs instead of answering; don't leave the button stuck forever.
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('LOGIN_TIMEOUT')), 15000));
+    const { data, error } = await Promise.race([sb.auth.signInWithPassword({ email, password: pass }), timeout]);
     if (error) {
       msg.className = 'auth-msg err'; msg.textContent = error.message;
       btn.disabled = false; btn.textContent = 'LOG IN →'; return;
     }
     await afterLogin(data.session);
   } catch(e) {
-    msg.className = 'auth-msg err'; msg.textContent = 'Login failed: ' + e.message;
+    msg.className = 'auth-msg err';
+    msg.textContent = e.message === 'LOGIN_TIMEOUT'
+      ? 'The login service is not responding right now. Please try again in a minute.'
+      : 'Login failed: ' + e.message;
     btn.disabled = false; btn.textContent = 'LOG IN →';
   }
 }
@@ -1682,12 +1687,17 @@ async function afterLogin(session) {
   document.getElementById('edit-name').value = currentUser.user_metadata?.display_name || '';
 
   try {
-    const r = await fetch('/api/subscription', { headers: { Authorization: 'Bearer ' + currentToken } });
+    const r = await fetch('/api/subscription', { headers: { Authorization: 'Bearer ' + currentToken }, signal: AbortSignal.timeout(15000) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     hasSub = d.active;
   } catch(e) {
+    // Don't send a paying user to pricing just because the check timed out
     console.warn('Subscription check failed:', e);
-    hasSub = false;
+    const msg = document.getElementById('login-msg'), btn = document.getElementById('login-btn');
+    msg.className = 'auth-msg err'; msg.textContent = 'Server is not responding right now — please try again in a moment.';
+    btn.disabled = false; btn.textContent = 'LOG IN →';
+    return;
   }
 
   if (!hasSub) { showView('pricing'); return; }
@@ -2944,9 +2954,10 @@ async function changePassword() {
 
     // Normal subscription check
     try {
-      const r=await fetch('/api/subscription',{headers:{Authorization:'Bearer '+currentToken}});
+      const r=await fetch('/api/subscription',{headers:{Authorization:'Bearer '+currentToken},signal:AbortSignal.timeout(15000)});
+      if(!r.ok) throw new Error('HTTP '+r.status);
       const d=await r.json();hasSub=d.active;
-    } catch(e){ hasSub=false; }
+    } catch(e){ console.warn('Subscription check failed:', e); return; } // stay on landing, user can log in again
     if(hasSub){showView('dashboard');loadAll();loadGEX();autoInt=setInterval(loadAll,300000);gexInt=setInterval(loadGEX,30000);fastInt=setInterval(loadFast,60000);}
     else{showView('pricing');}
   }

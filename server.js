@@ -29,6 +29,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         status: 'active',
         created_at: new Date().toISOString()
       });
+      subCache.delete(userId);
       console.log('Subscription activated for user:', userId);
     }
   }
@@ -37,6 +38,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     const sub = event.data.object;
     const status = (sub.status === 'active' || sub.status === 'trialing') ? 'active' : 'inactive';
     await supabase.from('subscriptions').update({ status }).eq('stripe_subscription_id', sub.id);
+    subCache.clear(); // don't know which user this sub belongs to — just drop the cache
   }
 
   res.json({ received: true });
@@ -60,26 +62,68 @@ app.use(express.static(__dirname));
 
 // ══ AUTH HELPERS ══════════════════════════════════════════
 
-// Verify Supabase JWT token from Authorization header
+// Verify Supabase JWT token from Authorization header.
+// Verified tokens are cached for 5 min: the dashboard polls every 30-60 s and each poll used to
+// cost a Supabase round-trip, so gateway blips (504s) hit every user. Timeout so a hung
+// Supabase gateway returns a clean 503 instead of hanging the request.
+const authCache = new Map(); // token -> { user, ts }
+const AUTH_TTL_MS = 5 * 60 * 1000;
 async function requireAuth(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'No token' });
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data.user) return res.status(401).json({ error: 'Invalid token' });
+  const hit = authCache.get(token);
+  if (hit && Date.now() - hit.ts < AUTH_TTL_MS) { req.user = hit.user; return next(); }
+  let result;
+  try {
+    result = await Promise.race([
+      supabase.auth.getUser(token),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('auth timeout')), 8000))
+    ]);
+  } catch (e) {
+    console.warn('Auth check failed:', e.message);
+    if (hit) { req.user = hit.user; return next(); } // expired cache entry beats locking the user out
+    return res.status(503).json({ error: 'Auth check unavailable' });
+  }
+  const { data, error } = result;
+  if (error || !data.user) { authCache.delete(token); return res.status(401).json({ error: 'Invalid token' }); }
+  if (authCache.size > 5000) authCache.clear();
+  authCache.set(token, { user: data.user, ts: Date.now() });
   req.user = data.user;
   next();
 }
 
-// Check if user has active subscription
-async function requireSubscription(req, res, next) {
-  const { data } = await supabase
+// Active-subscription lookup, cached per user. Every dashboard poll (macro/cot/prices/
+// session/gex/vwap) goes through requireSubscription — without the cache each user fires
+// several identical queries per minute at Supabase. Timeout so a hung DB can't hang login.
+const subCache = new Map(); // userId -> { sub, ts }
+const SUB_TTL_MS = 5 * 60 * 1000;
+async function getActiveSubscription(userId) {
+  const hit = subCache.get(userId);
+  if (hit && Date.now() - hit.ts < SUB_TTL_MS) return { sub: hit.sub };
+  const { data, error } = await supabase
     .from('subscriptions')
     .select('*')
-    .eq('user_id', req.user.id)
+    .eq('user_id', userId)
     .eq('status', 'active')
-    .single();
-  if (!data) return res.status(403).json({ error: 'No active subscription' });
-  req.subscription = data;
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .abortSignal(AbortSignal.timeout(8000))
+    .maybeSingle();
+  if (error) {
+    console.warn('Subscription lookup failed:', error.message || error);
+    if (hit) return { sub: hit.sub }; // serve stale rather than lock a paying user out
+    return { error };
+  }
+  subCache.set(userId, { sub: data || null, ts: Date.now() });
+  return { sub: data || null };
+}
+
+// Check if user has active subscription
+async function requireSubscription(req, res, next) {
+  const { sub, error } = await getActiveSubscription(req.user.id);
+  if (error) return res.status(503).json({ error: 'Subscription check unavailable' });
+  if (!sub) return res.status(403).json({ error: 'No active subscription' });
+  req.subscription = sub;
   next();
 }
 
@@ -194,6 +238,8 @@ app.get('/api/checkout/success', requireAuth, async (req, res) => {
       created_at: new Date().toISOString()
     });
 
+    subCache.delete(req.user.id);
+
     // Also update profile with stripe customer id
     await supabase.from('profiles').upsert({
       id: req.user.id,
@@ -211,13 +257,9 @@ app.get('/api/checkout/success', requireAuth, async (req, res) => {
 // ══ SUBSCRIPTION STATUS ════════════════════════════════════
 
 app.get('/api/subscription', requireAuth, async (req, res) => {
-  const { data } = await supabase
-    .from('subscriptions')
-    .select('*')
-    .eq('user_id', req.user.id)
-    .eq('status', 'active')
-    .single();
-  res.json({ active: !!data, subscription: data || null });
+  const { sub, error } = await getActiveSubscription(req.user.id);
+  if (error) return res.status(503).json({ error: 'Subscription check unavailable' });
+  res.json({ active: !!sub, subscription: sub || null });
 });
 
 // ══ CUSTOMER PORTAL (manage/cancel) ═══════════════════════
