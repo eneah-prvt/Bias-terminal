@@ -19,7 +19,7 @@
   /* Higher-contrast, calmer text ramp */
   --text:#eceef2;--muted:#8a94a3;--dim:#5a6573;--dimmer:#333d4a;
   /* Slightly desaturated semantic colors — less neon, more institutional */
-  --bull:#3ddc84;--bear:#f0616d;--neut:#f5a623;--blue:#5b9dff;
+  --bull:#3ddc84;--bear:#f0616d;--neut:#c9a66b;--blue:#5b9dff;
   --blue2:#3b82f6;--purple:#8b5cf6;
   /* Type system */
   --font-sans:'Inter',system-ui,-apple-system,sans-serif;
@@ -277,7 +277,7 @@ input,button{font-family:var(--font-sans);}
   --bg:#080a0e;--bg2:#0e1218;--bg3:#141b24;--bg4:#10161f;--card:#0e1218;--card2:#10161f;
   --border:#212a36;--border2:#1a212c;--bd:#212a36;--bd2:#1a212c;
   --text:#eceef2;--muted:#8a94a3;--dim:#5a6573;--dimmer:#333d4a;
-  --blue:#5b9dff;--purple:#8b5cf6;--bull:#3ddc84;--bear:#f0616d;--neut:#f5a623;
+  --blue:#5b9dff;--purple:#8b5cf6;--bull:#3ddc84;--bear:#f0616d;--neut:#c9a66b;
   font-family:var(--font-sans);background:var(--bg)!important;
 }
 #view-dashboard .dash-page{padding:26px 26px 60px!important;max-width:1240px!important;}
@@ -362,15 +362,19 @@ input,button{font-family:var(--font-sans);}
 #view-landing .aurora::before{width:680px;height:680px;left:-180px;top:-220px;background:radial-gradient(circle,rgba(91,157,255,.22),transparent 62%)}
 #view-landing .aurora::after{width:620px;height:620px;right:-160px;top:260px;background:radial-gradient(circle,rgba(139,92,246,.18),transparent 62%)}
 #view-landing .grid-bg{display:none}
-#view-landing,#view-dashboard{
-  background-color:#080a0e!important;
+/* Grid: a viewport-fixed layer behind the content (no background-attachment:fixed - ignored on phones and
+   unreliable in Opera - and no mask-image). Fades out toward the bottom of the screen on every device. */
+#view-landing,#view-dashboard,#view-auth,#view-pricing,#view-land-support{
+  position:relative;isolation:isolate;
+  background-color:#080a0e!important;background-image:none!important;}
+#view-landing::before,#view-dashboard::before,#view-auth::before,#view-pricing::before,#view-land-support::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:
     linear-gradient(180deg,rgba(8,10,14,0) 0%,rgba(8,10,14,0) 10%,#080a0e 78%),
     linear-gradient(rgba(255,255,255,.10) 1.5px,transparent 1.5px),
-    linear-gradient(90deg,rgba(255,255,255,.10) 1.5px,transparent 1.5px)!important;
-  background-size:100% 100%,54px 54px,54px 54px!important;
-  background-attachment:fixed,fixed,fixed!important;
-  background-position:center top!important;}
+    linear-gradient(90deg,rgba(255,255,255,.10) 1.5px,transparent 1.5px);
+  background-size:100% 100%,54px 54px,54px 54px;
+  background-position:center top;}
 #view-landing main,#view-landing header,#view-landing footer{position:relative;z-index:1}
 #view-landing #lpProgress{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--blue),var(--purple));z-index:100;box-shadow:0 0 12px rgba(91,157,255,.6)}
 #view-landing header{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,border-color .3s,backdrop-filter .3s;border-bottom:1px solid transparent}
@@ -494,7 +498,7 @@ input,button{font-family:var(--font-sans);}
 /* ===== Maintenance modal ===== */
 #maintenanceModal{display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;background:rgba(4,6,10,.8);backdrop-filter:blur(6px);padding:24px;}
 #maintenanceModal .mnt-card{max-width:430px;width:100%;background:linear-gradient(180deg,#0e1218,#10161f);border:1px solid #212a36;border-radius:14px;padding:32px 28px;text-align:center;box-shadow:0 40px 90px -30px rgba(0,0,0,.85);font-family:'Inter',system-ui,-apple-system,sans-serif;}
-#maintenanceModal .mnt-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:#f5a623;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.28);border-radius:20px;padding:4px 12px;margin-bottom:18px;}
+#maintenanceModal .mnt-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:#c9a66b;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.28);border-radius:20px;padding:4px 12px;margin-bottom:18px;}
 #maintenanceModal .mnt-ico{font-size:34px;line-height:1;margin-bottom:14px;}
 #maintenanceModal h3{color:#eceef2;font-size:21px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px;}
 #maintenanceModal p{color:#8a94a3;font-size:14px;line-height:1.65;margin:0 0 24px;}
@@ -1943,7 +1947,7 @@ function renderBias() {
   const m=liveData.macro, cot=liveData.cot[inst];
   const bias=computeBias(inst);
   const {score,macroScore,regime,pts,pills,components,consensus}=bias;
-  const col=score>55?'#22c55e':score<45?'#ef4444':'#f59e0b';
+  const col=score>55?'#22c55e':score<45?'#ef4444':'#c9a66b';
   const label=score>55?'BULLISH':score<45?'BEARISH':'NEUTRAL';
   window._signals.macro = score>55 ? 1 : score<45 ? -1 : 0;
   renderAlignmentBar();
@@ -1955,7 +1959,7 @@ function renderBias() {
   document.getElementById('biasScore').style.color=col;
   const compBars = components.length ? components.map(c => {
     const cScore = Math.max(-1, Math.min(1, c.score || 0));
-    const cCol = cScore > 0.15 ? '#22c55e' : cScore < -0.15 ? '#ef4444' : '#f59e0b';
+    const cCol = cScore > 0.15 ? '#22c55e' : cScore < -0.15 ? '#ef4444' : '#c9a66b';
     const widthPct = Math.abs(cScore) * 50;
     return `<div style="margin-bottom:4px;">
       <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--dim);">
@@ -1978,14 +1982,14 @@ function renderBias() {
   const rb={
     RISK_ON:    {bg:'#0a2e1a',c:'#22c55e',t:'RISK-ON · EXPANSION'},
     RISK_OFF:   {bg:'#2e0a0a',c:'#ef4444',t:'RISK-OFF · DEFENSIVE'},
-    NEUTRAL:    {bg:'#1a1a0a',c:'#f59e0b',t:'NEUTRAL · MIXED'}
+    NEUTRAL:    {bg:'#1a1a0a',c:'#c9a66b',t:'NEUTRAL · MIXED'}
   };
   const regime4Map = {
     GOLDILOCKS:  {bg:'#0a2e1a',c:'#22c55e',t:'GOLDILOCKS — Growth ↑ Inflation ↓'},
-    REFLATION:   {bg:'#1a1500',c:'#f59e0b',t:'REFLATION — Growth ↑ Inflation ↑'},
+    REFLATION:   {bg:'#16140f',c:'#c9a66b',t:'REFLATION — Growth ↑ Inflation ↑'},
     STAGFLATION: {bg:'#2e0a0a',c:'#ef4444',t:'STAGFLATION — Growth ↓ Inflation ↑'},
     DEFLATION:   {bg:'#0a0a2e',c:'#4a9eff',t:'DEFLATION — Growth ↓ Inflation ↓'},
-    NEUTRAL:     {bg:'#1a1a0a',c:'#f59e0b',t:'NEUTRAL · MIXED'}
+    NEUTRAL:     {bg:'#1a1a0a',c:'#c9a66b',t:'NEUTRAL · MIXED'}
   };
   const macroR4 = m?.macroRegime4 || 'NEUTRAL';
   const r4 = regime4Map[macroR4] || regime4Map.NEUTRAL;
@@ -2007,7 +2011,7 @@ function renderBias() {
   // Session Bias — real data where available
   const sess = liveData.session;
   const sessLabel = (b) => b === 'bullish' ? 'BULL' : b === 'bearish' ? 'BEAR' : 'NEUTRAL';
-  const sessCol = (b) => b === 'bullish' ? '#22c55e' : b === 'bearish' ? '#ef4444' : '#f59e0b';
+  const sessCol = (b) => b === 'bullish' ? '#22c55e' : b === 'bearish' ? '#ef4444' : '#c9a66b';
   const asiaBias = sess?.asia?.bias || null;
   const londonBias = sess?.london?.bias || null;
   const asiaNChg = sess?.asia?.nikkeiChg;
@@ -2024,10 +2028,10 @@ function renderBias() {
   renderAlignmentBar();
 
   var _rp=document.getElementById('regimeParams'); if(_rp) _rp.innerHTML=[
-    {l:'Risk Multiplier',v:macroScore>0.3?'1.2×':macroScore<-0.3?'0.6×':'1.0×',c:macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#f59e0b'},
+    {l:'Risk Multiplier',v:macroScore>0.3?'1.2×':macroScore<-0.3?'0.6×':'1.0×',c:macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#c9a66b'},
     {l:'Strategy Mode',v:macroScore>0.3?'MEAN REVERSION':macroScore<-0.3?'TREND FOLLOW':'MIXED',c:'#4a9eff'},
     {l:'Stop Multiplier',v:m?.vix?(m.vix<15?'0.8×':m.vix>30?'1.5×':'1.0×'):'—',c:'#e0e0e0'},
-    {l:'Max Leverage',v:macroScore>0.3?'2.0×':macroScore<-0.3?'1.0×':'1.5×',c:macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#f59e0b'},
+    {l:'Max Leverage',v:macroScore>0.3?'2.0×':macroScore<-0.3?'1.0×':'1.5×',c:macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#c9a66b'},
   ].map(p=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #111820;font-size:10px;"><span style="color:#445;">${p.l}</span><span style="color:${p.c};font-weight:700;">${p.v}</span></div>`).join('');
 
   if(cot){
@@ -2035,16 +2039,16 @@ function renderBias() {
     document.getElementById('cotSection').innerHTML=[
       {name:'Lev. Funds',g:cot.leveragedFunds},{name:'Asset Mgrs',g:cot.assetManagers},{name:'Small Spec',g:cot.smallSpec}
     ].map(({name,g})=>{
-      const pct=Math.min(100,Math.abs(g.net)/150000*100), c=g.net>0?'#22c55e':'#ef4444', ic=g.index>80?'#ef4444':g.index<20?'#22c55e':'#f59e0b';
+      const pct=Math.min(100,Math.abs(g.net)/150000*100), c=g.net>0?'#22c55e':'#ef4444', ic=g.index>80?'#ef4444':g.index<20?'#22c55e':'#c9a66b';
       return `<div class="cot-row"><div class="cot-name">${name}</div><div class="cot-track"><div class="cot-fill" style="width:${pct}%;background:${c};"></div></div><div class="cot-val" style="color:${c}">${g.net>0?'+':''}${g.net.toLocaleString()}</div><div class="cot-idx" style="color:${ic}">${g.index}</div></div>`;
     }).join('');
   }
 
   if(components.length){
-    const cc=macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#f59e0b';
+    const cc=macroScore>0.3?'#22c55e':macroScore<-0.3?'#ef4444':'#c9a66b';
     let html=`<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;"><div style="font-size:22px;font-weight:700;color:${cc};">${macroScore>=0?'+':''}${macroScore.toFixed(2)}</div><div style="font-size:10px;color:#556;">${macroScore>0.5?'RISK-ON':macroScore<-0.5?'RISK-OFF':'NEUTRAL'}<br><span style="font-size:9px;color:#334;">−1 to +1</span></div></div>`;
     html+=components.map(c=>{
-      const pct=Math.round((c.score+1)/2*100), cc2=c.score>0.3?'#22c55e':c.score<-0.3?'#ef4444':'#f59e0b';
+      const pct=Math.round((c.score+1)/2*100), cc2=c.score>0.3?'#22c55e':c.score<-0.3?'#ef4444':'#c9a66b';
       return `<div class="comp-row"><div class="comp-lbl">${c.name} <span style="color:#334;font-size:8px;">${c.weight}%</span></div><div class="comp-track"><div class="comp-fill" style="width:${pct}%;background:${cc2};"></div></div><div class="comp-val" style="color:${cc2}">${c.score>=0?'+':''}${c.score.toFixed(2)}</div><div class="comp-raw">${c.raw}</div></div>`;
     }).join('');
     document.getElementById('compositeSection').innerHTML=html;
@@ -2177,7 +2181,7 @@ function renderGEXPanel(symbol, data, panelId, updatedId) {
     </div>` : ''}
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
       <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">GAMMA FLIP</span>
-      <span style="font-size:13px;font-weight:700;color:#f59e0b;">${fmt(data.gamma_flip)}</span>
+      <span style="font-size:13px;font-weight:700;color:#c9a66b;">${fmt(data.gamma_flip)}</span>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #111820;">
       <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">CALL WALL <span style="color:#334;">(resistance)</span></span>
@@ -2207,7 +2211,7 @@ function renderSessionCheck() {
   const bias = computeBias(inst);
 
   const { score, macroScore, regime } = bias;
-  const col = score > 55 ? '#22c55e' : score < 45 ? '#ef4444' : '#f59e0b';
+  const col = score > 55 ? '#22c55e' : score < 45 ? '#ef4444' : '#c9a66b';
   const label = score > 55 ? 'BULLISH' : score < 45 ? 'BEARISH' : 'NEUTRAL';
 
   // ── Layer 2: Intraday Status ──────────────────────────
@@ -2239,8 +2243,8 @@ function renderSessionCheck() {
       } else if (nearCall) {
         intradayStatus = 'PAUSED — AT RESISTANCE';
         intradaySub = `Price near call wall (${fmt(callWall)})`;
-        intradayCol = '#f59e0b';
-        borderCol = '#f59e0b';
+        intradayCol = '#c9a66b';
+        borderCol = '#c9a66b';
         tacticalNote = `Macro bias is bullish but price is approaching the call wall at ${fmt(callWall)}. The call wall acts as a magnet but also potential resistance. Wait for price to either break through with volume or reject and find support — do not chase longs at this level.`;
       } else if (aboveCall) {
         intradayStatus = 'ACTIVE — BREAKOUT';
@@ -2257,8 +2261,8 @@ function renderSessionCheck() {
       } else if (aboveFlip === false) {
         intradayStatus = 'CAUTION — BELOW FLIP';
         intradaySub = `Below gamma flip (${fmt(flip)})`;
-        intradayCol = '#f59e0b';
-        borderCol = '#f59e0b';
+        intradayCol = '#c9a66b';
+        borderCol = '#c9a66b';
         tacticalNote = `Macro bias is bullish but price is below the gamma flip at ${fmt(flip)}. Below the flip, dealer hedging amplifies moves downward. Wait for price to reclaim the gamma flip before taking longs. Bullish bias is intact strategically but structurally bearish intraday.`;
       } else {
         intradayStatus = 'ACTIVE';
@@ -2271,8 +2275,8 @@ function renderSessionCheck() {
       if (nearPut) {
         intradayStatus = 'PAUSED — AT SUPPORT';
         intradaySub = `Price near put wall (${fmt(putWall)})`;
-        intradayCol = '#f59e0b';
-        borderCol = '#f59e0b';
+        intradayCol = '#c9a66b';
+        borderCol = '#c9a66b';
         tacticalNote = `Macro bias is bearish but price is near the put wall at ${fmt(putWall)}. The put wall provides strong dealer-driven support. Do not short into this level — wait for price to break below the put wall before adding bearish positions.`;
       } else if (belowPut) {
         intradayStatus = 'ACTIVE — BREAKDOWN';
@@ -2283,8 +2287,8 @@ function renderSessionCheck() {
       } else if (aboveFlip) {
         intradayStatus = 'CAUTION — ABOVE FLIP';
         intradaySub = `Above gamma flip (${fmt(flip)})`;
-        intradayCol = '#f59e0b';
-        borderCol = '#f59e0b';
+        intradayCol = '#c9a66b';
+        borderCol = '#c9a66b';
         tacticalNote = `Macro bias is bearish but price is above the gamma flip at ${fmt(flip)}. Above the flip, dealers stabilize the market — moves are dampened. Wait for price to lose the gamma flip before aggressively shorting. Bearish bias is intact strategically but intraday structure is neutral.`;
       } else {
         intradayStatus = 'ACTIVE';
@@ -2296,8 +2300,8 @@ function renderSessionCheck() {
     } else {
       intradayStatus = 'NEUTRAL';
       intradaySub = 'No clear directional bias';
-      intradayCol = '#f59e0b';
-      borderCol = '#f59e0b';
+      intradayCol = '#c9a66b';
+      borderCol = '#c9a66b';
       tacticalNote = `Mixed signals. Macro score is neutral — no strong directional edge. Reduce size, wait for cleaner setup. Key levels: ${flip ? 'Gamma flip ' + fmt(flip) : ''} ${callWall ? '· Call wall ' + fmt(callWall) : ''} ${putWall ? '· Put wall ' + fmt(putWall) : ''}.`;
     }
   } else {
@@ -2324,7 +2328,7 @@ function renderSessionCheck() {
   const sessRegSubEl = document.getElementById('sc-session-regime-sub');
   if (sessRegEl && sessReg) {
     const srCol = sessReg === 'MEAN REVERSION' ? '#4a9eff'
-      : sessReg === 'TRENDING' ? '#f59e0b'
+      : sessReg === 'TRENDING' ? '#c9a66b'
       : sessReg === 'HIGH VOL' ? '#ef4444'
       : sessReg === 'CAUTION' ? '#ef4444'
       : '#778';
@@ -2426,7 +2430,7 @@ function renderSessionCheck() {
   confluenceScore = checks.filter(Boolean).length;
 
   // Score ring removed — signals are read directly from the cards below.
-  const ringCol = confluenceScore >= 3 ? '#22c55e' : confluenceScore >= 2 ? '#f59e0b' : '#ef4444';
+  const ringCol = confluenceScore >= 3 ? '#22c55e' : confluenceScore >= 2 ? '#c9a66b' : '#ef4444';
 
   // ── Smart GEX + Price Analysis ─────────────────────────
   const rec = document.getElementById('sc-recommendation');
@@ -2513,7 +2517,7 @@ function renderSessionCheck() {
   }
 
   // ── Main Recommendation ────────────────────────────────
-  let mainRec = '', mainCol = '#f59e0b';
+  let mainRec = '', mainCol = '#c9a66b';
   const putRef  = esGex?.put_wall  ? ` toward put wall (${fmt(esGex.put_wall)})`  : ' on pullbacks';
   const callRef = esGex?.call_wall ? ` toward call wall (${fmt(esGex.call_wall)})` : ' on rips';
   const flipRef = esGex?.gamma_flip ? ` / gamma flip (${fmt(esGex.gamma_flip)})` : '';
@@ -2526,7 +2530,7 @@ function renderSessionCheck() {
     mainCol = '#ef4444';
   } else if (confluenceScore === 2) {
     mainRec = '→ REDUCE SIZE — Mixed signals. Wait for cleaner setup near key GEX level';
-    mainCol = '#f59e0b';
+    mainCol = '#c9a66b';
   } else {
     mainRec = '→ STAND ASIDE — Signals conflicted. No clear edge. Wait for alignment';
     mainCol = '#ef4444';
@@ -2691,7 +2695,7 @@ function renderLevels(){
   const d=lvlState[lvlInst];
   document.getElementById('vwapLevels').innerHTML=[
     {n:'VWAP',v:d.vwap,c:'#4a9eff',b:null},{n:'SD1+',v:d.sd1u,c:'#22c55e',b:'+1σ'},{n:'SD1−',v:d.sd1l,c:'#22c55e',b:'−1σ'},
-    {n:'SD2+',v:d.sd2u,c:'#f59e0b',b:'+2σ'},{n:'SD2−',v:d.sd2l,c:'#f59e0b',b:'−2σ'},
+    {n:'SD2+',v:d.sd2u,c:'#c9a66b',b:'+2σ'},{n:'SD2−',v:d.sd2l,c:'#c9a66b',b:'−2σ'},
   ].map(r=>`<div class="lv-row"><div class="lv-name"><div class="lv-dot" style="background:${r.c};"></div>${r.n}${r.b?`<span class="lv-badge" style="background:${r.c}18;color:${r.c};border:1px solid ${r.c}33;">${r.b}</span>`:''}</div><div class="lv-val" style="color:${r.v!==null?r.c:'#334'}">${fmt(r.v)}</div></div>`).join('');
 
   document.getElementById('pdLevels').innerHTML=[
@@ -2702,7 +2706,7 @@ function renderLevels(){
   if(!d.vwap||!d.sd2u||!d.sd2l){el.innerHTML='<div style="color:#334;font-size:10px;padding:6px 0;">Enter level data to render chart.</div>';return;}
   const lo=d.sd2l,hi=d.sd2u,range=hi-lo,last=d.last||d.vwap;
   const pct=v=>Math.min(100,Math.max(0,((v-lo)/range*100))).toFixed(1);
-  const allLvl=[{l:'SD2+',v:d.sd2u,c:'#f59e0b'},{l:'PDH',v:d.pdh,c:'#22c55e88'},{l:'SD1+',v:d.sd1u,c:'#22c55e'},{l:'PDC',v:d.pdc,c:'#778'},{l:'VWAP',v:d.vwap,c:'#4a9eff'},{l:'PDL',v:d.pdl,c:'#ef444488'},{l:'SD1−',v:d.sd1l,c:'#22c55e'},{l:'SD2−',v:d.sd2l,c:'#f59e0b'}].filter(x=>x.v!==null).sort((a,b)=>b.v-a.v);
+  const allLvl=[{l:'SD2+',v:d.sd2u,c:'#c9a66b'},{l:'PDH',v:d.pdh,c:'#22c55e88'},{l:'SD1+',v:d.sd1u,c:'#22c55e'},{l:'PDC',v:d.pdc,c:'#778'},{l:'VWAP',v:d.vwap,c:'#4a9eff'},{l:'PDL',v:d.pdl,c:'#ef444488'},{l:'SD1−',v:d.sd1l,c:'#22c55e'},{l:'SD2−',v:d.sd2l,c:'#c9a66b'}].filter(x=>x.v!==null).sort((a,b)=>b.v-a.v);
   el.innerHTML=`<div style="position:relative;height:22px;background:#111820;border-radius:3px;margin-bottom:12px;overflow:visible;">${allLvl.map(l=>`<div style="position:absolute;left:${pct(l.v)}%;top:0;width:1px;height:100%;background:${l.c};opacity:.9;"></div>`).join('')}<div style="position:absolute;left:${pct(last)}%;top:-4px;width:2px;height:30px;background:#fff;border-radius:2px;z-index:2;"></div><div style="position:absolute;left:calc(${pct(last)}% + 4px);top:-14px;font-size:9px;color:#fff;white-space:nowrap;">${fmt(last)}</div></div><div style="display:flex;flex-wrap:wrap;gap:10px;">${allLvl.map(l=>`<div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#556;"><div style="width:7px;height:7px;border-radius:50%;background:${l.c};"></div>${l.l} <span style="color:#e0e0e0;">${fmt(l.v)}</span></div>`).join('')}</div>`;
 }
 
@@ -2728,7 +2732,7 @@ async function sendLandingSupport() {
   const message  = document.getElementById('ls-msg').value.trim();
   const status   = document.getElementById('ls-status');
   if (!email || !message) { status.style.color='#ef4444'; status.textContent='Please fill in your email and message.'; return; }
-  status.style.color='#f59e0b'; status.textContent='Sending...';
+  status.style.color='#c9a66b'; status.textContent='Sending...';
   try {
     const r = await fetch('/api/support', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, email, message}) });
     const d = await r.json();
@@ -2767,7 +2771,7 @@ async function sendSupport() {
     return;
   }
 
-  status.style.color='#f59e0b';
+  status.style.color='#c9a66b';
   status.textContent='Sending...';
 
   try {
@@ -2809,7 +2813,7 @@ function calcES() {
   const contracts   = stopVal > 0 ? Math.floor(riskAmt / stopVal) : 0;
   const profitTotal = tpVal * contracts;
   const rr          = stopVal > 0 && tpVal > 0 ? (tpVal / stopVal).toFixed(2) : null;
-  const rrCol       = rr ? (parseFloat(rr) >= 2 ? '#22c55e' : parseFloat(rr) >= 1.5 ? '#f59e0b' : '#ef4444') : '#778';
+  const rrCol       = rr ? (parseFloat(rr) >= 2 ? '#22c55e' : parseFloat(rr) >= 1.5 ? '#c9a66b' : '#ef4444') : '#778';
 
   document.getElementById('es-risk-dollar').textContent  = '$' + riskAmt.toFixed(0);
   document.getElementById('es-contracts').textContent    = contracts > 0 ? contracts : '0';
@@ -2836,7 +2840,7 @@ function calcNQ() {
   const contracts   = stopVal > 0 ? Math.floor(riskAmt / stopVal) : 0;
   const profitTotal = tpVal * contracts;
   const rr          = stopVal > 0 && tpVal > 0 ? (tpVal / stopVal).toFixed(2) : null;
-  const rrCol       = rr ? (parseFloat(rr) >= 2 ? '#22c55e' : parseFloat(rr) >= 1.5 ? '#f59e0b' : '#ef4444') : '#778';
+  const rrCol       = rr ? (parseFloat(rr) >= 2 ? '#22c55e' : parseFloat(rr) >= 1.5 ? '#c9a66b' : '#ef4444') : '#778';
 
   document.getElementById('nq-risk-dollar').textContent  = '$' + riskAmt.toFixed(0);
   document.getElementById('nq-contracts').textContent    = contracts > 0 ? contracts : '0';
@@ -2858,7 +2862,7 @@ function updateBiasCalc() {
   const bias = computeBias(inst);
   if (!bias) return;
   const { score, macroScore, regime } = bias;
-  const col = score > 55 ? '#22c55e' : score < 45 ? '#ef4444' : '#f59e0b';
+  const col = score > 55 ? '#22c55e' : score < 45 ? '#ef4444' : '#c9a66b';
 
   // Suggested risk based on bias strength
   let suggestedRisk, note;
@@ -3100,7 +3104,7 @@ function renderLevelsPage() {
     gexEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:10px;color:var(--dim);">GAMMA FLIP</span>
-        <span style="font-size:13px;color:#f59e0b;font-family:monospace;">${fmt(gex.gamma_flip)}</span>
+        <span style="font-size:13px;color:#c9a66b;font-family:monospace;">${fmt(gex.gamma_flip)}</span>
         <span style="font-size:9px;color:var(--dim);">${p && gex.gamma_flip ? (p > gex.gamma_flip ? '▲ ABOVE' : '▼ BELOW') + (gex.expected_move ? ' · ' + Math.abs((gex.gamma_flip - p) / gex.expected_move).toFixed(1) + ' EM' : '') : ''}</span>
       </div>
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);">
@@ -3128,7 +3132,7 @@ function renderLevelsPage() {
       { label: 'Call Wall',  val: gex.call_wall,    color: '#3ddc84', kind: 'wall' },
       { label: 'Call OI',    val: gex.call_oi_wall,  color: '#2a9d63', kind: 'oi' },
       { label: 'PDH',        val: data?.pd?.pdh,     color: '#8a94a3', kind: 'ref' },
-      { label: 'Gamma Flip', val: gex.gamma_flip,    color: '#f5a623', kind: 'flip' },
+      { label: 'Gamma Flip', val: gex.gamma_flip,    color: '#c9a66b', kind: 'flip' },
       { label: 'PDC',        val: data?.pd?.pdc,     color: '#8a94a3', kind: 'ref' },
       { label: 'PDL',        val: data?.pd?.pdl,     color: '#8a94a3', kind: 'ref' },
       { label: 'Put OI',     val: gex.put_oi_wall,   color: '#b04752', kind: 'oi' },
@@ -3249,7 +3253,7 @@ function renderOIZones() {
     </div>
     <div style="display:flex;justify-content:space-between;padding:5px 0;">
       <span style="font-size:10px;color:var(--dim);">DTE</span>
-      <span style="font-size:12px;font-family:monospace;color:${gex.dte === 0 ? '#f59e0b' : 'var(--text)'};">${gex.dte != null ? gex.dte : '—'}</span>
+      <span style="font-size:12px;font-family:monospace;color:${gex.dte === 0 ? '#c9a66b' : 'var(--text)'};">${gex.dte != null ? gex.dte : '—'}</span>
       <span style="font-size:8px;color:var(--dim);">${gex.dte === 0 ? 'PIN RISK ELEVATED — charm flows dominate close' : gex.dte === 1 ? 'EXPIRATION TOMORROW' : ''}</span>
     </div>`;
 }
@@ -3310,7 +3314,7 @@ function renderCharmPanel() {
     </div>
     <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);">
       <span style="font-size:10px;color:var(--dim);">INTENSITY</span>
-      <span style="font-size:10px;color:${lateSession && charmActive ? '#f59e0b' : 'var(--dim)'};">${charmActive ? (lateSession ? 'PEAK — final 2h, charm dominates' : 'ACTIVE — strengthens into close') : 'LOW — far from expiration'}</span>
+      <span style="font-size:10px;color:${lateSession && charmActive ? '#c9a66b' : 'var(--dim)'};">${charmActive ? (lateSession ? 'PEAK — final 2h, charm dominates' : 'ACTIVE — strengthens into close') : 'LOW — far from expiration'}</span>
     </div>
     <div style="font-size:8.5px;color:var(--dim);margin-top:4px;">Charm flows accelerate non-linearly into 0DTE close — strongest force in the final hour.</div>`;
 }
@@ -3324,7 +3328,7 @@ window._signals = { macro: null, session: null, intraday: null }; // -1 / 0 / +1
 function renderAlignmentBar() {
   const s = window._signals;
   const sym = v => v == null ? '—' : v > 0 ? '▲ BULL' : v < 0 ? '▼ BEAR' : '◆ NEUT';
-  const col = v => v == null ? 'var(--dim)' : v > 0 ? 'var(--green)' : v < 0 ? 'var(--red)' : '#f59e0b';
+  const col = v => v == null ? 'var(--dim)' : v > 0 ? 'var(--green)' : v < 0 ? 'var(--red)' : '#c9a66b';
   const set = (id, v) => { const el = document.getElementById(id); if (el) { el.textContent = sym(v); el.style.color = col(v); } };
   set('al-macro', s.macro); set('al-session', s.session); set('al-intraday', s.intraday);
 
@@ -3336,8 +3340,8 @@ function renderAlignmentBar() {
   const hasBull = vals.some(v => v > 0), hasBear = vals.some(v => v < 0);
   if (allBull)      { vEl.textContent = 'ALIGNED BULLISH — full conviction'; vEl.style.color = 'var(--green)'; }
   else if (allBear) { vEl.textContent = 'ALIGNED BEARISH — full conviction'; vEl.style.color = 'var(--red)'; }
-  else if (hasBull && hasBear) { vEl.textContent = 'DIVERGENT — reduce size, wait for alignment'; vEl.style.color = '#f59e0b'; }
-  else { vEl.textContent = 'MIXED — partial alignment, trade smaller'; vEl.style.color = '#f59e0b'; }
+  else if (hasBull && hasBear) { vEl.textContent = 'DIVERGENT — reduce size, wait for alignment'; vEl.style.color = '#c9a66b'; }
+  else { vEl.textContent = 'MIXED — partial alignment, trade smaller'; vEl.style.color = '#c9a66b'; }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3483,14 +3487,14 @@ function renderStructureRead() {
   window._signals.intraday = score > 25 ? 1 : score < -25 ? -1 : 0;
   renderAlignmentBar();
   const lean = score > 25 ? 'BULLISH STRUCTURE' : score < -25 ? 'BEARISH STRUCTURE' : 'NEUTRAL / TWO-SIDED';
-  const col = score > 25 ? '#22c55e' : score < -25 ? '#ef4444' : '#f59e0b';
+  const col = score > 25 ? '#22c55e' : score < -25 ? '#ef4444' : '#c9a66b';
 
   const events = (window._regimeEvents || []).filter(e => e.symbol === (lvlInst === 'ES' ? 'SPY' : 'QQQ')).slice(0, 4);
   const eventsHtml = events.length ? `<div style="margin-bottom:8px;">
     <div style="font-size:8px;color:var(--dim);letter-spacing:1px;margin-bottom:3px;">REGIME EVENTS · RECENT</div>
-    ${events.map(e => `<div style="display:flex;gap:8px;align-items:center;padding:3px 8px;background:var(--bg2);border-radius:3px;margin-bottom:2px;border-left:2px solid #f59e0b;">
+    ${events.map(e => `<div style="display:flex;gap:8px;align-items:center;padding:3px 8px;background:var(--bg2);border-radius:3px;margin-bottom:2px;border-left:2px solid #c9a66b;">
       <span style="font-size:8px;font-family:monospace;color:var(--dim);">${new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span>
-      <span style="font-size:9.5px;color:#f59e0b;font-weight:700;">${e.type === 'GEX_FLIP' ? '' : '↕'}</span>
+      <span style="font-size:9.5px;color:#c9a66b;font-weight:700;">${e.type === 'GEX_FLIP' ? '' : '↕'}</span>
       <span style="font-size:9.5px;color:var(--text);">${e.msg}</span>
     </div>`).join('')}
   </div>` : '';
@@ -3555,7 +3559,7 @@ function renderCombinedPage() {
   // Combined score — weighted
   const combined = Math.round(combMacroScore * 0.45 + combTechScore * 0.35 + combFundScore * 0.20);
   const label = combined > 60 ? 'BULLISH' : combined < 40 ? 'BEARISH' : 'NEUTRAL';
-  const col   = combined > 60 ? '#22c55e' : combined < 40 ? '#ef4444' : '#f59e0b';
+  const col   = combined > 60 ? '#22c55e' : combined < 40 ? '#ef4444' : '#c9a66b';
 
   // Update gauge
   const arc = document.getElementById('comb-gauge-arc');
@@ -3581,7 +3585,7 @@ function renderCombinedPage() {
       { label: 'FUNDAMENTAL', score: combFundScore, weight: '20%' },
     ];
     compEl.innerHTML = bars.map(b => {
-      const c = b.score > 60 ? '#22c55e' : b.score < 40 ? '#ef4444' : '#f59e0b';
+      const c = b.score > 60 ? '#22c55e' : b.score < 40 ? '#ef4444' : '#c9a66b';
       return `<div style="margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
           <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">${b.label} <span style="color:var(--dim);opacity:.6;">(${b.weight})</span></span>
@@ -3796,12 +3800,12 @@ function renderFundamentalsPage() {
     macroEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:10px;color:var(--dim);">VIX</span>
-        <span style="font-size:13px;color:${m.vix>20?'var(--red)':m.vix>15?'#f59e0b':'var(--green)'};">${m.vix ? m.vix.toFixed(2) : '—'}</span>
+        <span style="font-size:13px;color:${m.vix>20?'var(--red)':m.vix>15?'#c9a66b':'var(--green)'};">${m.vix ? m.vix.toFixed(2) : '—'}</span>
         <span style="font-size:9px;color:var(--dim);">${m.vix ? (m.vix > 20 ? 'HIGH VOL' : m.vix > 15 ? 'ELEVATED' : 'LOW VOL') : ''}</span>
       </div>
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:10px;color:var(--dim);">HY SPREADS</span>
-        <span style="font-size:13px;color:${m.hy>4?'var(--red)':m.hy>3?'#f59e0b':'var(--green)'};">${m.hy ? m.hy.toFixed(2)+'%' : '—'}</span>
+        <span style="font-size:13px;color:${m.hy>4?'var(--red)':m.hy>3?'#c9a66b':'var(--green)'};">${m.hy ? m.hy.toFixed(2)+'%' : '—'}</span>
         <span style="font-size:9px;color:var(--dim);">${m.hy ? (m.hy > 4 ? 'STRESS' : m.hy > 3 ? 'CAUTION' : 'TIGHT') : ''}</span>
       </div>
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);">
@@ -3851,7 +3855,7 @@ function renderFundamentalsPage() {
       </div>
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:10px;color:var(--dim);">IMPACT ON ES/NQ</span>
-        <span style="font-size:11px;color:${m.dxy>105?'var(--red)':m.dxy>100?'#f59e0b':'var(--green)'};">${m.dxy ? (m.dxy > 105 ? 'HEADWIND — Strong dollar pressures equities' : m.dxy > 100 ? 'NEUTRAL — Watch for breakout' : 'TAILWIND — Weak dollar supports risk') : '—'}</span>
+        <span style="font-size:11px;color:${m.dxy>105?'var(--red)':m.dxy>100?'#c9a66b':'var(--green)'};">${m.dxy ? (m.dxy > 105 ? 'HEADWIND — Strong dollar pressures equities' : m.dxy > 100 ? 'NEUTRAL — Watch for breakout' : 'TAILWIND — Weak dollar supports risk') : '—'}</span>
       </div>`;
   }
 
