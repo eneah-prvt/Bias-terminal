@@ -304,6 +304,7 @@
         var t = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
         apply(t);
         try { localStorage.setItem("ab-theme", t); } catch (e) {}
+        document.dispatchEvent(new CustomEvent("ab-themechange", { detail: t }));
       });
     });
   }

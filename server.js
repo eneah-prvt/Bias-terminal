@@ -58,7 +58,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const stripe   = new Stripe(STRIPE_KEY);
 
 // ── Serve static frontend ─────────────────────────────────
-app.use(express.static(__dirname));
+// Whitelist only: server code, the scoring engine, data files and docs must never be downloadable.
+// index.html itself is served by the catch-all at the bottom.
+const PUBLIC_FILES = new Set(['favicon.png', 'landing.css', 'landing.js', 'landing-data.js', 'dashboard.css']);
+app.get('/:file', (req, res, next) =>
+  PUBLIC_FILES.has(req.params.file) ? res.sendFile(path.join(__dirname, req.params.file)) : next());
 
 // ══ AUTH HELPERS ══════════════════════════════════════════
 
@@ -1202,45 +1206,47 @@ app.get('/api/vwap', requireAuth, requireSubscription, (req, res) => {
   res.json(vwapCache);
 });
 
-app.get('/api/gex', requireAuth, requireSubscription, (req, res) => {
-  const formatGex = (cache, symbol) => {
-    if (!cache.data) return null;
-    const d = cache.data;
+// GEX cache entry -> client shape, levels converted to ES/NQ points via the daily ratio
+function formatGex(cache, symbol) {
+  if (!cache.data) return null;
+  const d = cache.data;
 
-    // Use live ratio calculated from ES/NQ price divided by SPY/QQQ spot
-    const ratio = d.stored_ratio || dailyRatio[symbol] || (symbol === 'SPY' ? 10.03 : 41.30);
-    const conv = (v) => v !== null && v !== undefined ? +(v * ratio).toFixed(2) : null;
+  // Use live ratio calculated from ES/NQ price divided by SPY/QQQ spot
+  const ratio = d.stored_ratio || dailyRatio[symbol] || (symbol === 'SPY' ? 10.03 : 41.30);
+  const conv = (v) => v !== null && v !== undefined ? +(v * ratio).toFixed(2) : null;
 
-    return {
-      symbol,
-      net_gex:           d.net_gex ?? null,
-      net_dex:           d.net_dex ?? null,
-      net_vanna:         d.net_vanna ?? null,
-      net_ag:            d.net_ag ?? null,
-      net_gex_label:     d.net_gex_label ?? null,
-      gamma_flip:        conv(d.gamma_flip_raw),
-      call_wall:         conv(d.call_wall_raw),
-      put_wall:          conv(d.put_wall_raw),
-      call_wall_gex:     d.call_wall_gex ?? null,
-      put_wall_gex:      d.put_wall_gex ?? null,
-      call_oi_wall:      conv(d.call_oi_wall_raw),
-      put_oi_wall:       conv(d.put_oi_wall_raw),
-      call_oi:           d.call_oi ?? null,
-      put_oi:            d.put_oi ?? null,
-      net_charm:         d.net_charm ?? null,
-      atm_iv:            d.atm_iv ?? null,
-      iv_skew:           d.iv_skew ?? null,
-      gex_profile:       d.gex_profile ? d.gex_profile.map(p => ({ strike: conv(p.strike), gex: p.gex })) : null,
-      // Expected daily move in index points: Spot × IV × √(1/252), converted to ES/NQ
-      expected_move:     (d.atm_iv && d.ff_spot) ? +((d.ff_spot * (d.atm_iv / 100) / Math.sqrt(252)) * ratio).toFixed(2) : null,
-      dte:               d.dte ?? null,
-      underlying_price:  d.ff_spot ? conv(d.ff_spot) : null,
-      expiration:        d.expiration,
-      ratio:             ratio,
-      raw_spot:          d.ff_spot ?? null,
-      updatedAt:         cache.updatedAt
-    };
+  return {
+    symbol,
+    net_gex:           d.net_gex ?? null,
+    net_dex:           d.net_dex ?? null,
+    net_vanna:         d.net_vanna ?? null,
+    net_ag:            d.net_ag ?? null,
+    net_gex_label:     d.net_gex_label ?? null,
+    gamma_flip:        conv(d.gamma_flip_raw),
+    call_wall:         conv(d.call_wall_raw),
+    put_wall:          conv(d.put_wall_raw),
+    call_wall_gex:     d.call_wall_gex ?? null,
+    put_wall_gex:      d.put_wall_gex ?? null,
+    call_oi_wall:      conv(d.call_oi_wall_raw),
+    put_oi_wall:       conv(d.put_oi_wall_raw),
+    call_oi:           d.call_oi ?? null,
+    put_oi:            d.put_oi ?? null,
+    net_charm:         d.net_charm ?? null,
+    atm_iv:            d.atm_iv ?? null,
+    iv_skew:           d.iv_skew ?? null,
+    gex_profile:       d.gex_profile ? d.gex_profile.map(p => ({ strike: conv(p.strike), gex: p.gex })) : null,
+    // Expected daily move in index points: Spot × IV × √(1/252), converted to ES/NQ
+    expected_move:     (d.atm_iv && d.ff_spot) ? +((d.ff_spot * (d.atm_iv / 100) / Math.sqrt(252)) * ratio).toFixed(2) : null,
+    dte:               d.dte ?? null,
+    underlying_price:  d.ff_spot ? conv(d.ff_spot) : null,
+    expiration:        d.expiration,
+    ratio:             ratio,
+    raw_spot:          d.ff_spot ?? null,
+    updatedAt:         cache.updatedAt
   };
+}
+
+app.get('/api/gex', requireAuth, requireSubscription, (req, res) => {
 
   const spyGex = formatGex(gexCache.SPY, 'ES (via SPY)');
   const qqqGex = formatGex(gexCache.QQQ, 'NQ (via QQQ)');
@@ -1279,6 +1285,27 @@ app.get('/api/gex', requireAuth, requireSubscription, (req, res) => {
   }
 
   res.json({ SPY: spyGex, QQQ: qqqGex, sessionRegime, sessionRegimeDesc, events: regimeEvents.slice(0, 10), timestamp: new Date().toISOString() });
+});
+
+// ══ BIAS — scored server-side, the browser only gets the result ══
+const biasEngine = require('./bias-engine');
+
+app.get('/api/bias', requireAuth, requireSubscription, (req, res) => {
+  const macro = macroCache.data || null;
+  const gex = { ES: formatGex(gexCache.SPY, 'ES (via SPY)'), NQ: formatGex(gexCache.QQQ, 'NQ (via QQQ)') };
+  const nowUtcHour = new Date().getUTCHours();
+  const out = { timestamp: new Date().toISOString() };
+  for (const inst of ['ES', 'NQ']) {
+    const cot = cotCache.data?.[inst] || null;
+    const price = priceCache[inst]?.price || null;
+    out[inst] = {
+      // the macro bias always reads SPY gamma against the ES price (unchanged from the original engine)
+      bias: biasEngine.computeBias({ m: macro, cot, gex: gex.ES, esPrice: priceCache.ES?.price || null }),
+      structure: biasEngine.computeStructure({ gex: gex[inst], price, nowUtcHour }),
+      combined: biasEngine.computeCombined({ macro, cot, gex: gex[inst], price, vwap: vwapCache[inst]?.bands || null }),
+    };
+  }
+  res.json(out);
 });
 
 // ══ GEX DEBUG ═════════════════════════════════════════════
@@ -1340,7 +1367,7 @@ app.get('*', (req, res) => {
   const p2 = path.join(__dirname, 'index.html');
   if (fs.existsSync(p1)) res.sendFile(p1);
   else if (fs.existsSync(p2)) res.sendFile(p2);
-  else res.status(404).send('Not found. __dirname=' + __dirname + ' files=' + fs.readdirSync(__dirname).join(','));
+  else res.status(404).send('Not found');
 });
 
 const PORT = process.env.PORT || 3000;
