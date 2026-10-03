@@ -3,8 +3,8 @@
  * assigning a new object of the same shape to window.LANDING_DATA before landing.js runs (or re-calling
  * window.renderLandingExhibits()).
  *
- * @typedef {{name:string, weight:number, score:number}} CompositeRow      score in [-1, 1]
- * @typedef {{label:string, conviction:number, bias:number}} SignalPoint   conviction 0-100, bias -100..100
+ * @typedef {{name:string, score:number}} CompositeRow                     score in [-1, 1]
+ * @typedef {{conviction:number, bias:number}} SignalPoint                 conviction 0-100, bias -100..100 (models are not named)
  * @typedef {{strike:number, gex:number}} GexBar                            gex in $bn per 1% move (sign = dealer gamma)
  * @typedef {{name:string, price:number, kind:("wall"|"flip"|"prior"|"overnight"|"vwap")}} Level
  * @typedef {{
@@ -25,29 +25,28 @@ window.LANDING_DATA = /** @type {LandingData} */ ({
     label: "BULLISH",
     consensus: 18.2,                       // net consensus in %
     regime: "REFLATION",
-    composite: [                           // weights as displayed in the terminal (see methodology for the nesting)
-      { name: "Yield curve",    weight: 25, score:  0.42 },
-      { name: "VIX",            weight: 18, score:  0.31 },
-      { name: "DXY",            weight: 12, score: -0.12 },
-      { name: "HY spread",      weight: 10, score:  0.48 },
-      { name: "COT signal",     weight: 25, score:  0.20 },
-      { name: "GEX+DEX+Vanna",  weight: 15, score:  0.36 }
+    composite: [                           // generic factor groups (no inputs, no weights on the public page)
+      { name: "Macro backdrop",    score:  0.34 },
+      { name: "Volatility regime", score:  0.31 },
+      { name: "Positioning",       score:  0.20 },
+      { name: "Dealer flow",       score:  0.36 },
+      { name: "Credit conditions", score:  0.48 }
     ]
   },
 
   signals: [                               // Signal Constellation
-    { label: "COT-LS", conviction: 88, bias:  62 },
-    { label: "YC",     conviction: 80, bias:  58 },
-    { label: "VIX",    conviction: 72, bias:  52 },
-    { label: "GEX",    conviction: 76, bias:  40 },
-    { label: "CREDIT", conviction: 65, bias:  36 },
-    { label: "DXY",    conviction: 62, bias: -34 },
-    { label: "COT-AM", conviction: 55, bias:  30 },
-    { label: "DEX",    conviction: 48, bias: -22 },
-    { label: "VANNA",  conviction: 42, bias:  18 },
-    { label: "CHARM",  conviction: 36, bias: -12 },
-    { label: "INDPRO", conviction: 30, bias:  14 },
-    { label: "CPI",    conviction: 28, bias: -18 }
+    { conviction: 88, bias:  62 },
+    { conviction: 80, bias:  58 },
+    { conviction: 72, bias:  52 },
+    { conviction: 76, bias:  40 },
+    { conviction: 65, bias:  36 },
+    { conviction: 62, bias: -34 },
+    { conviction: 55, bias:  30 },
+    { conviction: 48, bias: -22 },
+    { conviction: 42, bias:  18 },
+    { conviction: 36, bias: -12 },
+    { conviction: 30, bias:  14 },
+    { conviction: 28, bias: -18 }
   ],
 
   regime: {

@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Archivo:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,700;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/landing.css">
+<script>/* apply the saved light/dark choice before first paint */try{if(localStorage.getItem("ab-theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}</script>
 <style>
 :root{color-scheme:dark;} /* page is dark already - stops browsers' forced dark mode (e.g. Opera) from recolouring it */
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -358,10 +359,10 @@ input,button{font-family:var(--font-sans);}
 /* Landing page styles live in /landing.css (editorial redesign 2026-10). */
 /* Grid: a viewport-fixed layer behind the content (no background-attachment:fixed - ignored on phones and
    unreliable in Opera - and no mask-image). Fades out toward the bottom of the screen on every device. */
-#view-dashboard,#view-auth,#view-pricing,#view-land-support{
+#view-dashboard{
   position:relative;isolation:isolate;
   background-color:#080a0e!important;background-image:none!important;}
-#view-dashboard::before,#view-auth::before,#view-pricing::before,#view-land-support::before{
+#view-dashboard::before{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:
     linear-gradient(180deg,rgba(8,10,14,0) 0%,rgba(8,10,14,0) 10%,#080a0e 78%),
@@ -393,12 +394,13 @@ input,button{font-family:var(--font-sans);}
     <a class="wordmark" href="#lp-main" aria-label="Alpha-Bias, back to top">ALPHA-BIAS</a>
     <nav class="nav-links" aria-label="Main">
       <a href="#features">Features</a>
-      <a href="#methodology">Methodology</a>
+      <a href="#approach">Approach</a>
       <a href="#how">How it works</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
     </nav>
     <div class="nav-actions">
+      <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch to dark mode" title="Light / dark"><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.6 6.6 0 0 0 9.7 9.7z"/></svg><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg></button>
       <button type="button" class="nav-login" onclick="showView('auth')">Log in</button>
       <button type="button" class="btn btn-sm" onclick="showView('pricing')">Get Access</button>
     </div>
@@ -465,8 +467,8 @@ input,button{font-family:var(--font-sans);}
         </div>
         <figure class="feature-exhibit exhibit">
           <div class="exhibit-head"><p class="exhibit-title">Exhibit 2: Signal Constellation, bias vs conviction</p></div>
-          <div class="exhibit-body" data-exhibit="constellation" role="img" aria-label="Scatter of twelve signals by bias and conviction."></div>
-          <figcaption><b>Source:</b> Alpha-Bias terminal. Point size scales with conviction; illustrative values.</figcaption>
+          <div class="exhibit-body" data-exhibit="constellation" role="img" aria-label="Scatter of the engine's models by bias and conviction."></div>
+          <figcaption><b>Source:</b> Alpha-Bias terminal. Each point is one model; point size scales with conviction. Illustrative values.</figcaption>
         </figure>
       </article>
 
@@ -476,7 +478,7 @@ input,button{font-family:var(--font-sans);}
           <p>Growth and inflation data from FRED place the economy in one of four regimes: Goldilocks, Reflation, Stagflation or Deflation. A weighted macro composite from &minus;1 to +1 translates the regime into a risk posture.</p>
           <ul class="dash-list">
             <li>Four-quadrant regime from FRED growth and inflation</li>
-            <li>Composite of yield curve, VIX, DXY and high-yield spreads, &minus;1 to +1</li>
+            <li>Weighted macro composite from &minus;1 to +1</li>
             <li>Adjusts risk posture, strategy mode and stop distance</li>
           </ul>
         </div>
@@ -536,7 +538,7 @@ input,button{font-family:var(--font-sans);}
         <div class="exhibit-body" data-exhibit="overview" role="img" aria-label="Overview of the terminal with five numbered panels."></div>
         <ol class="legend" aria-label="Panel legend">
           <li><span class="k">1</span><span>Bias score, label and regime</span></li>
-          <li><span class="k">2</span><span>Composite macro score by component</span></li>
+          <li><span class="k">2</span><span>Score by factor group</span></li>
           <li><span class="k">3</span><span>Signal constellation</span></li>
           <li><span class="k">4</span><span>GEX levels with distance in points</span></li>
           <li><span class="k">5</span><span>Tactical note for the session</span></li>
@@ -551,39 +553,19 @@ input,button{font-family:var(--font-sans);}
     </div>
   </section>
 
-  <!-- METHODOLOGY -->
-  <section id="methodology" aria-labelledby="lp-meth">
+  <!-- APPROACH (deliberately high level: weights and construction are not published) -->
+  <section id="approach" aria-labelledby="lp-approach">
     <div class="container">
       <div class="section-head fade">
-        <p class="marker">&sect; 3 &mdash; Methodology</p>
-        <h2 id="lp-meth">How the bias is built</h2>
-        <p class="lead">The Bias Score is built in three stages. Four FRED macro series form a macro score; CFTC positioning is blended in at 25%, then dealer flow from the options market at 15%. Every signal is scaled to &minus;1 &hellip; +1 before it is weighted.</p>
+        <p class="marker">&sect; 3 &mdash; Approach</p>
+        <h2 id="lp-approach">What goes into the read</h2>
+        <p class="lead">Public macro data, regulatory positioning data and options-market data are scored independently and combined into one directional read. The models and their weighting are proprietary; the inputs and the limits are not.</p>
       </div>
-      <!-- TODO confirm with the product owner: weights and refresh rates below are read from computeBias() on 2026-10-03 -->
-      <div class="table-wrap fade">
-        <table>
-          <caption>Exhibit 7: Signals and weights in the composite</caption>
-          <thead>
-            <tr><th scope="col">Stage</th><th scope="col">Signal</th><th scope="col">Source</th><th scope="col" class="num">Weight</th><th scope="col">Refresh</th></tr>
-          </thead>
-          <tbody id="lp-meth-rows">
-            <tr><td>1 &middot; Macro</td><td>10Y&ndash;2Y yield curve</td><td>FRED</td><td class="num">25%</td><td>Every few minutes</td></tr>
-            <tr><td>1 &middot; Macro</td><td>VIX level</td><td>FRED / CBOE</td><td class="num">18%</td><td>Every few minutes</td></tr>
-            <tr><td>1 &middot; Macro</td><td>US dollar index (DXY)</td><td>FRED</td><td class="num">12%</td><td>Every few minutes</td></tr>
-            <tr><td>1 &middot; Macro</td><td>High-yield credit spread</td><td>FRED (ICE BofA)</td><td class="num">10%</td><td>Daily</td></tr>
-            <tr><td>2 &middot; Positioning</td><td>COT leveraged-funds index</td><td>CFTC COT</td><td class="num">25%</td><td>Weekly (Friday)</td></tr>
-            <tr><td>3 &middot; Dealer flow</td><td>Net GEX + DEX + Vanna</td><td>Options-derived</td><td class="num">15%</td><td>Every 60 s in session</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="table-note">Weights as displayed in the terminal. Stage 1 weights are coefficients on the four macro signals; stage 2 blends the macro score 75 / 25 with COT; stage 3 blends the result 85 / 15 with dealer flow.</p>
       <div class="grid meth-grid">
-        <div class="fade"><h3>Data sources</h3><p>Federal Reserve Economic Data (FRED) for rates, volatility, the dollar and credit; the CFTC Commitments of Traders report for positioning; index options for dealer gamma; live ES and NQ futures bars for intraday levels.</p></div>
-        <div class="fade"><h3>Refresh frequency</h3><p>Macro inputs every few minutes during market hours, dealer gamma every 60 seconds in session, COT weekly after the Friday release.</p></div>
-        <div class="fade"><h3>Limitations</h3><p>The read is context, not a forecast. COT data is published weekly with a lag, dealer positioning is an estimate from public options data and can shift quickly around expiries, and the weights are fixed rather than fitted to recent results.</p></div>
+        <div class="fade"><h3>Data sources</h3><p>Federal Reserve Economic Data (FRED), the CFTC Commitments of Traders report, index options for dealer positioning, and live ES and NQ futures bars for intraday levels.</p></div>
+        <div class="fade"><h3>Refresh frequency</h3><p>Macro inputs every few minutes during market hours, dealer positioning every 60 seconds in session, positioning data weekly after the CFTC release.</p></div>
+        <div class="fade"><h3>Limitations</h3><p>The read is context, not a forecast. Positioning data is published weekly with a lag, dealer positioning is an estimate from public options data and can shift quickly around expiries, and no read replaces your own risk management.</p></div>
       </div>
-      <!-- TODO route placeholder: full methodology page does not exist yet -->
-      <p class="meth-link"><a class="link" href="/methodology">Read the full methodology</a></p>
     </div>
   </section>
 
@@ -616,7 +598,7 @@ input,button{font-family:var(--font-sans);}
         <ul class="check-list">
           <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Macro-bias engine for ES and NQ</li>
           <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Signal Constellation and 0&ndash;100 Bias Score</li>
-          <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>COT positioning with 52-week index</li>
+          <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>COT positioning for ES and NQ</li>
           <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Regime detection and FRED macro composite</li>
           <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Dealer GEX, DEX and Vanna with walls</li>
           <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Intraday GEX levels and key reference levels</li>
@@ -675,7 +657,7 @@ input,button{font-family:var(--font-sans);}
       <a class="wordmark" href="#lp-main">ALPHA-BIAS</a>
       <nav class="foot-links" aria-label="Footer">
         <a href="#features">Features</a>
-        <a href="#methodology">Methodology</a>
+        <a href="#approach">Approach</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
         <button type="button" onclick="showView('auth')">Log in</button>
@@ -692,133 +674,117 @@ input,button{font-family:var(--font-sans);}
 </footer>
 </div>
 
-<div class="view" id="view-land-support">
-  <nav class="land-nav">
-    <div class="land-logo">ALPHA-BIAS</div>
-    <div class="land-nav-right">
-      <button class="btn-outline" onclick="showView('landing')">← BACK</button>
+<!-- ══════════════ SUPPORT (editorial theme, styles in /landing.css) ══════════════ -->
+<div class="view edv" id="view-land-support">
+  <header class="ed-header">
+    <div class="ed-container ed-nav">
+      <button type="button" class="ed-wordmark" onclick="showView('landing')" aria-label="Alpha-Bias, back to overview">ALPHA-BIAS</button>
+      <div class="ed-nav-actions"><button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch to dark mode" title="Light / dark"><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.6 6.6 0 0 0 9.7 9.7z"/></svg><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg></button><button type="button" class="ed-navlink" onclick="showView('landing')">Back to overview</button></div>
     </div>
-  </nav>
-  <div style="max-width:520px;margin:100px auto 60px;padding:0 24px;">
-    <div class="panel" style="margin-bottom:12px;">
-      <div class="plabel">CONTACT SUPPORT</div>
-      <div style="font-size:10px;color:var(--muted);line-height:1.8;margin:10px 0 14px;">
-        Have a question or need help? We'll get back to you within 24 hours.
-      </div>
-      <div class="field"><label>USERNAME</label><input class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="ls-username" placeholder="Your name or username"/></div>
-      <div class="field"><label>YOUR EMAIL</label><input class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;" id="ls-email" placeholder="your@email.com"/></div>
-      <div class="field" style="margin-bottom:0;"><label>MESSAGE</label><textarea class="mini-inp" style="width:100%;padding:9px 10px;font-size:12px;resize:vertical;min-height:110px;font-family:var(--font-sans);" id="ls-msg" placeholder="Describe your issue or question..."></textarea></div>
-      <button class="btn-primary" style="width:100%;margin-top:10px;padding:12px;font-size:11px;" onclick="sendLandingSupport()">SEND MESSAGE →</button>
-      <div id="ls-status" style="font-size:10px;margin-top:8px;min-height:16px;text-align:center;"></div>
+  </header>
+  <main class="ed-container ed-page">
+    <div class="ed-page-head">
+      <p class="ed-marker">&sect; Support</p>
+      <h1>Contact support</h1>
+      <p class="ed-lead">Questions about the terminal or your account? We reply within 24 hours.</p>
     </div>
-    <div class="panel" style="margin-bottom:12px;">
-      <div class="plabel">CONTACT</div>
-      <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:2.4;">
-        <div><a href="mailto:support@alpha-bias.com" style="color:var(--blue);">support@alpha-bias.com</a></div>
-        <div>⏱ Response time: within 24 hours</div>
-      </div>
+    <div class="ed-split">
+      <form class="ed-card" onsubmit="event.preventDefault();sendLandingSupport();">
+        <div class="ed-field"><label for="ls-username">Name or username</label><input id="ls-username" type="text" autocomplete="name" placeholder="Your name or username"/></div>
+        <div class="ed-field"><label for="ls-email">Email</label><input id="ls-email" type="email" autocomplete="email" placeholder="you@example.com" required/></div>
+        <div class="ed-field"><label for="ls-msg">Message</label><textarea id="ls-msg" rows="6" placeholder="Describe your question or issue" required></textarea></div>
+        <button type="submit" class="ed-btn ed-btn-block">Send message</button>
+        <p id="ls-status" class="ed-status" role="status" aria-live="polite"></p>
+      </form>
+      <aside class="ed-aside" aria-label="Other ways to reach us">
+        <h2>Email</h2>
+        <p><a class="ed-link" href="mailto:support@alpha-bias.com">support@alpha-bias.com</a><br><span class="ed-muted">Response time: within 24 hours</span></p>
+        <h2>Community</h2>
+        <p>Live discussion with other members and the team.<br><a class="ed-link" href="https://discord.gg/FZwtCA5NGn" target="_blank" rel="noopener">Join the Discord</a></p>
+      </aside>
     </div>
-    <div class="panel">
-      <div class="plabel">COMMUNITY · DISCORD</div>
-      <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:1.8;margin-bottom:14px;">Join our community for live discussions and support.</div>
-      <a href="https://discord.gg/FZwtCA5NGn" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#5865F2;color:#fff;font-size:11px;padding:12px;border-radius:4px;text-align:center;font-weight:700;letter-spacing:1px;text-decoration:none;font-family:var(--font-sans);">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
-        JOIN DISCORD SERVER ↗
-      </a>
-    </div>
-  </div>
+  </main>
 </div>
 
 <!-- ══════════════ PRICING ══════════════ -->
-<div class="view" id="view-pricing">
-  <nav class="land-nav">
-    <div class="land-logo">ALPHA-BIAS</div>
-    <div class="land-nav-right">
-      <button class="btn-outline" onclick="showAuth('login')">LOG IN</button>
+<div class="view edv" id="view-pricing">
+  <header class="ed-header">
+    <div class="ed-container ed-nav">
+      <button type="button" class="ed-wordmark" onclick="showView('landing')" aria-label="Alpha-Bias, back to overview">ALPHA-BIAS</button>
+      <div class="ed-nav-actions"><button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch to dark mode" title="Light / dark"><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.6 6.6 0 0 0 9.7 9.7z"/></svg><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg></button><button type="button" class="ed-navlink" onclick="showAuth('login')">Log in</button></div>
     </div>
-  </nav>
-  <div class="pricing-wrap">
-    <button class="back-btn" onclick="showView('landing')">← BACK</button>
-    <div class="pricing-card">
-      <div class="pricing-badge">MOST POPULAR</div>
-      <div class="pricing-name">PRO PLAN</div>
-      <div class="pricing-price">
-        <span class="pricing-price-cur">$</span>
-        <span class="pricing-price-val" id="priceDisplay">34.90</span>
-        <span class="pricing-price-period">/ month</span>
-      </div>
-      <div class="pricing-price-orig" id="priceOrig"></div>
-      <ul class="pricing-features">
-        <li>Live macro data (VIX, Yields, DXY, HY Spreads)</li>
-                  <li>GEX · DEX · Vanna dealer positioning (every minute)</li>
-        <li>Weekly CFTC COT positioning for ES & NQ</li>
-        <li>Signal MAP chart (12 models)</li>
-        <li>Composite regime score with parameters</li>
-        <li>Intraday Levels page (GEX levels, walls + PD levels)</li>
-        <li>TradingView webhook integration</li>
-        <li>Macro auto-refresh every 5min · GEX every minute</li>
-        <li>Cancel anytime</li>
+  </header>
+  <main class="ed-container ed-page">
+    <button type="button" class="ed-back" onclick="showView('landing')">&larr; Back to overview</button>
+    <div class="ed-page-head ed-center">
+      <p class="ed-marker">&sect; Pricing</p>
+      <h1>One plan. Everything included.</h1>
+      <p class="ed-lead">Full terminal access for ES and NQ, month to month.</p>
+    </div>
+    <div class="ed-card ed-price-card">
+      <p class="ed-plan">Pro plan</p>
+      <p class="ed-price"><span class="ed-cur">$</span><span id="priceDisplay">34.90</span> <span class="ed-per">/ month</span></p>
+      <p class="ed-orig" id="priceOrig"></p>
+      <ul class="ed-checks">
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Macro-bias engine for ES and NQ</li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Signal map and 0&ndash;100 Bias Score</li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Regime detection</li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Dealer positioning with walls, refreshed every minute</li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Intraday levels for ES and NQ</li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>TradingView webhook integration</li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5l4 4 8-9"/></svg>Tactical notes and Discord access</li>
       </ul>
-
-      <div class="promo-section">
-        <div class="plabel" style="margin-bottom:8px;">PROMO CODE</div>
-        <div class="promo-row">
-          <input class="promo-inp" id="promoInput" placeholder="ENTER CODE" maxlength="20"/>
-          <button class="promo-btn" onclick="validatePromo()">APPLY</button>
+      <div class="ed-field ed-promo">
+        <label for="promoInput">Promo code</label>
+        <div class="ed-promo-row">
+          <input id="promoInput" type="text" placeholder="Enter code" maxlength="20" autocomplete="off"/>
+          <button type="button" class="ed-btn ed-btn-outline" onclick="validatePromo()">Apply</button>
         </div>
-        <div class="promo-msg" id="promoMsg"></div>
+        <p class="promo-msg" id="promoMsg" role="status" aria-live="polite"></p>
       </div>
-
-      <button class="checkout-btn" id="checkoutBtn" onclick="startCheckout()">
-        START SUBSCRIPTION — $34.90/mo
-      </button>
-      <div class="pricing-footer">
-        Secure payment via Stripe · Cancel anytime · No hidden fees<br>
-        Already have an account? <a onclick="showAuth('login')" style="cursor:pointer;">Log in</a>
-      </div>
+      <button type="button" class="ed-btn ed-btn-block" id="checkoutBtn" onclick="startCheckout()">Start subscription, $34.90/mo</button>
+      <p class="ed-fine">Secure checkout via Stripe. Cancel anytime. No hidden fees.</p>
+      <p class="ed-fine">Already have an account? <button type="button" class="ed-inline-link" onclick="showAuth('login')">Log in</button></p>
     </div>
-  </div>
+  </main>
 </div>
 
 <!-- ══════════════ AUTH (Login / Register) ══════════════ -->
-<div class="view" id="view-auth">
-  <nav class="land-nav">
-    <div class="land-logo">ALPHA-BIAS</div>
-    <div class="land-nav-right">
-      <button class="btn-outline" onclick="showView('landing')">← BACK</button>
+<div class="view edv" id="view-auth">
+  <header class="ed-header">
+    <div class="ed-container ed-nav">
+      <button type="button" class="ed-wordmark" onclick="showView('landing')" aria-label="Alpha-Bias, back to overview">ALPHA-BIAS</button>
+      <div class="ed-nav-actions"><button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch to dark mode" title="Light / dark"><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.6 6.6 0 0 0 9.7 9.7z"/></svg><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg></button><button type="button" class="ed-navlink" onclick="showView('landing')">Back to overview</button></div>
     </div>
-  </nav>
-  <div class="auth-wrap">
-    <div class="auth-card">
-      <div class="auth-logo">BIAS TERMINAL</div>
-      <div class="auth-tabs">
-        <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">LOG IN</div>
-        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">REGISTER</div>
+  </header>
+  <main class="ed-container ed-page">
+    <div class="ed-card ed-auth-card">
+      <h1 class="ed-auth-title">The terminal</h1>
+      <div class="ed-tabs" role="tablist" aria-label="Account">
+        <button type="button" class="ed-tab active" id="tab-login" role="tab" aria-selected="true" onclick="switchAuthTab('login')">Log in</button>
+        <button type="button" class="ed-tab" id="tab-register" role="tab" aria-selected="false" onclick="switchAuthTab('register')">Create account</button>
       </div>
 
-      <!-- Login -->
-      <div id="auth-login">
-        <div class="field"><label>EMAIL</label><input type="email" id="login-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-        <div class="field"><label>PASSWORD</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-        <button class="auth-btn" onclick="doLogin()" id="login-btn">LOG IN →</button>
-        <div class="auth-msg" id="login-msg"></div>
+      <div id="auth-login" role="tabpanel" aria-labelledby="tab-login">
+        <div class="ed-field"><label for="login-email">Email</label><input type="email" id="login-email" autocomplete="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <div class="ed-field"><label for="login-pass">Password</label><input type="password" id="login-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <button type="button" class="ed-btn ed-btn-block" onclick="doLogin()" id="login-btn">Log in</button>
+        <p class="auth-msg" id="login-msg" role="status" aria-live="polite"></p>
       </div>
 
-      <!-- Register -->
-      <div id="auth-register" style="display:none;">
-        <div class="field"><label>USERNAME</label><input type="text" id="reg-username" placeholder="e.g. trader_pro" maxlength="30"/></div>
-        <div class="field"><label>EMAIL</label><input type="email" id="reg-email" placeholder="you@example.com"/></div>
-        <div class="field"><label>PASSWORD</label><input type="password" id="reg-pass" placeholder="Min. 8 characters"/></div>
-        <div class="field"><label>CONFIRM PASSWORD</label><input type="password" id="reg-pass2" placeholder="Repeat password" onkeydown="if(event.key==='Enter')doRegister()"/></div>
-        <button class="auth-btn" onclick="doRegister()" id="reg-btn">CREATE ACCOUNT →</button>
-        <div class="auth-msg" id="reg-msg"></div>
+      <div id="auth-register" role="tabpanel" aria-labelledby="tab-register" hidden>
+        <div class="ed-field"><label for="reg-username">Username</label><input type="text" id="reg-username" autocomplete="username" placeholder="e.g. trader_pro" maxlength="30"/></div>
+        <div class="ed-field"><label for="reg-email">Email</label><input type="email" id="reg-email" autocomplete="email" placeholder="you@example.com"/></div>
+        <div class="ed-field"><label for="reg-pass">Password</label><input type="password" id="reg-pass" autocomplete="new-password" placeholder="At least 8 characters"/></div>
+        <div class="ed-field"><label for="reg-pass2">Confirm password</label><input type="password" id="reg-pass2" autocomplete="new-password" placeholder="Repeat password" onkeydown="if(event.key==='Enter')doRegister()"/></div>
+        <button type="button" class="ed-btn ed-btn-block" onclick="doRegister()" id="reg-btn">Create account</button>
+        <p class="auth-msg" id="reg-msg" role="status" aria-live="polite"></p>
       </div>
 
-      <div class="auth-footer">
-        By signing up you agree to our <a href="#">Terms of Service</a>
-      </div>
+      <!-- TODO legal page: /terms does not exist yet -->
+      <p class="ed-fine">By creating an account you agree to the <a class="ed-link" href="/terms">Terms of Service</a>.</p>
     </div>
-  </div>
+  </main>
 </div>
 
 <!-- ══════════════ DASHBOARD ══════════════ -->
@@ -1566,8 +1532,12 @@ function showAuth(tab = 'login') {
 function switchAuthTab(tab) {
   document.getElementById('auth-login').style.display = tab === 'login' ? 'block' : 'none';
   document.getElementById('auth-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('auth-login').hidden = tab !== 'login';
+  document.getElementById('auth-register').hidden = tab !== 'register';
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('tab-login').setAttribute('aria-selected', String(tab === 'login'));
+  document.getElementById('tab-register').setAttribute('aria-selected', String(tab === 'register'));
 }
 
 
@@ -1577,7 +1547,7 @@ async function doLogin() {
   const pass  = document.getElementById('login-pass').value;
   const btn   = document.getElementById('login-btn');
   const msg   = document.getElementById('login-msg');
-  btn.disabled = true; btn.textContent = 'LOGGING IN...';
+  btn.disabled = true; btn.textContent = 'Logging in…';
   msg.className = 'auth-msg'; msg.textContent = '';
 
   try {
@@ -1586,7 +1556,7 @@ async function doLogin() {
     const { data, error } = await Promise.race([sb.auth.signInWithPassword({ email, password: pass }), timeout]);
     if (error) {
       msg.className = 'auth-msg err'; msg.textContent = error.message;
-      btn.disabled = false; btn.textContent = 'LOG IN →'; return;
+      btn.disabled = false; btn.textContent = 'Log in'; return;
     }
     await afterLogin(data.session);
   } catch(e) {
@@ -1594,7 +1564,7 @@ async function doLogin() {
     msg.textContent = e.message === 'LOGIN_TIMEOUT'
       ? 'The login service is not responding right now. Please try again in a minute.'
       : 'Login failed: ' + e.message;
-    btn.disabled = false; btn.textContent = 'LOG IN →';
+    btn.disabled = false; btn.textContent = 'Log in';
   }
 }
 
@@ -1610,7 +1580,7 @@ async function doRegister() {
   if (pass !== pass2) { msg.className='auth-msg err'; msg.textContent='Passwords do not match.'; return; }
   if (pass.length < 8) { msg.className='auth-msg err'; msg.textContent='Password must be at least 8 characters.'; return; }
 
-  btn.disabled = true; btn.textContent = 'CREATING ACCOUNT...';
+  btn.disabled = true; btn.textContent = 'Creating account…';
   msg.className = 'auth-msg'; msg.textContent = '';
 
   const { data, error } = await sb.auth.signUp({
@@ -1619,7 +1589,7 @@ async function doRegister() {
   });
   if (error) {
     msg.className = 'auth-msg err'; msg.textContent = error.message;
-    btn.disabled = false; btn.textContent = 'CREATE ACCOUNT →'; return;
+    btn.disabled = false; btn.textContent = 'Create account'; return;
   }
   msg.className = 'auth-msg ok';
   msg.textContent = 'Account created! Redirecting to checkout...';
@@ -1647,7 +1617,7 @@ async function afterLogin(session) {
     console.warn('Subscription check failed:', e);
     const msg = document.getElementById('login-msg'), btn = document.getElementById('login-btn');
     msg.className = 'auth-msg err'; msg.textContent = 'Server is not responding right now — please try again in a moment.';
-    btn.disabled = false; btn.textContent = 'LOG IN →';
+    btn.disabled = false; btn.textContent = 'Log in';
     return;
   }
 
@@ -1674,7 +1644,7 @@ async function validatePromo() {
   const code = document.getElementById('promoInput').value.trim();
   const msg  = document.getElementById('promoMsg');
   if (!code) return;
-  msg.className = 'promo-msg'; msg.textContent = 'Checking...';
+  msg.className = 'promo-msg'; msg.textContent = 'Checking…';
   const r = await fetch('/api/promo/validate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ code }) });
   const d = await r.json();
   if (!d.valid) { msg.className='promo-msg err'; msg.textContent = d.error || 'Invalid code.'; activePromo = null; resetPrice(); return; }
@@ -1685,30 +1655,30 @@ async function validatePromo() {
   if (d.discount_percent) {
     const disc = (base * d.discount_percent / 100).toFixed(2);
     const newP = (base - disc).toFixed(2);
-    msg.textContent = `✓ ${d.discount_percent}% off applied — $${disc} saved!`;
+    msg.textContent = `${d.discount_percent}% off applied, $${disc} saved.`;
     document.getElementById('priceDisplay').textContent = newP;
     document.getElementById('priceOrig').textContent = `Regular price: $${base.toFixed(2)}/mo`;
-    document.getElementById('checkoutBtn').textContent = `START SUBSCRIPTION — $${newP}/mo`;
+    document.getElementById('checkoutBtn').textContent = `Start subscription, $${newP}/mo`;
   } else if (d.discount_amount) {
     const newP = Math.max(0, base - d.discount_amount).toFixed(2);
-    msg.textContent = `✓ $${d.discount_amount} off applied!`;
+    msg.textContent = `$${d.discount_amount} off applied.`;
     document.getElementById('priceDisplay').textContent = newP;
     document.getElementById('priceOrig').textContent = `Regular price: $${base.toFixed(2)}/mo`;
-    document.getElementById('checkoutBtn').textContent = `START SUBSCRIPTION — $${newP}/mo`;
+    document.getElementById('checkoutBtn').textContent = `Start subscription, $${newP}/mo`;
   }
 }
 
 function resetPrice() {
   document.getElementById('priceDisplay').textContent = '34.90';
   document.getElementById('priceOrig').textContent = '';
-  document.getElementById('checkoutBtn').textContent = 'START SUBSCRIPTION — $34.90/mo';
+  document.getElementById('checkoutBtn').textContent = 'Start subscription, $34.90/mo';
 }
 
 // ── Checkout ──────────────────────────────────────────────
 async function startCheckout() {
   const btn = document.getElementById('checkoutBtn');
   if (!currentToken) { showAuth('login'); return; }
-  btn.disabled = true; btn.textContent = 'REDIRECTING TO STRIPE...';
+  btn.disabled = true; btn.textContent = 'Redirecting to Stripe…';
   const r = await fetch('/api/checkout', {
     method: 'POST',
     headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+currentToken },
@@ -1716,7 +1686,7 @@ async function startCheckout() {
   });
   const d = await r.json();
   if (d.url) { window.location.href = d.url; }
-  else { btn.disabled = false; btn.textContent = 'START SUBSCRIPTION — $34.90/mo'; alert(d.error || 'Error starting checkout.'); }
+  else { btn.disabled = false; btn.textContent = 'Start subscription, $34.90/mo'; alert(d.error || 'Error starting checkout.'); }
 }
 
 async function openPortal() {
@@ -2678,14 +2648,14 @@ async function sendLandingSupport() {
   const email    = document.getElementById('ls-email').value.trim();
   const message  = document.getElementById('ls-msg').value.trim();
   const status   = document.getElementById('ls-status');
-  if (!email || !message) { status.style.color='#ef4444'; status.textContent='Please fill in your email and message.'; return; }
-  status.style.color='#eba12e'; status.textContent='Sending...';
+  if (!email || !message) { status.className='ed-status err'; status.textContent='Please fill in your email and message.'; return; }
+  status.className='ed-status'; status.textContent='Sending…';
   try {
     const r = await fetch('/api/support', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, email, message}) });
     const d = await r.json();
-    if (d.ok) { status.style.color='#22c55e'; status.textContent='✓ Message sent. We\'ll get back to you within 24 hours.'; document.getElementById('ls-username').value=''; document.getElementById('ls-email').value=''; document.getElementById('ls-msg').value=''; }
+    if (d.ok) { status.className='ed-status ok'; status.textContent='Message sent. We\'ll get back to you within 24 hours.'; document.getElementById('ls-username').value=''; document.getElementById('ls-email').value=''; document.getElementById('ls-msg').value=''; }
     else throw new Error(d.error);
-  } catch(e) { status.style.color='#ef4444'; status.textContent='Failed. Please email support@alpha-bias.com directly.'; }
+  } catch(e) { status.className='ed-status err'; status.textContent='Failed. Please email support@alpha-bias.com directly.'; }
 }
 
 function toggleFullscreen() {

@@ -21,7 +21,7 @@
   /* ---------- Exhibit 1: directional bias panel ---------- */
   function biasPanel(d) {
     var b = d.bias, s = svg(560, 456, "Directional bias panel for " + d.instrument + ": score " + b.score + " of 100, " + b.label +
-      ", consensus " + signed(b.consensus, 1) + " percent, regime " + b.regime + ", with the composite macro score by component.");
+      ", consensus " + signed(b.consensus, 1) + " percent, regime " + b.regime + ", with the score of each factor group.");
     // score ring
     var cx = 92, cy = 96, r = 66, circ = 2 * Math.PI * r, frac = Math.max(0, Math.min(1, b.score / 100));
     add(s, el("circle", { cx: cx, cy: cy, r: r, fill: "none", "class": "c-grid", "stroke-width": 10 }));
@@ -40,25 +40,24 @@
     add(s, el("text", { x: x0 + 140, y: 151, "text-anchor": "middle", "class": "t-num t-neutralc", "font-size": 12 }, b.regime));
     // composite bars
     add(s, el("line", { x1: 0, y1: 196, x2: 560, y2: 196, "class": "c-grid" }));
-    add(s, el("text", { x: 0, y: 224, "class": "t-label", "font-weight": 600 }, "Composite macro score"));
+    add(s, el("text", { x: 0, y: 224, "class": "t-label", "font-weight": 600 }, "Factor groups"));
     add(s, el("text", { x: 560, y: 224, "text-anchor": "end", "class": "t-num-muted" }, "−1 … +1"));
     var top = 244, rowH = 30, mid = 352, half = 120;
     add(s, el("line", { x1: mid, y1: top - 6, x2: mid, y2: top + rowH * b.composite.length, "class": "c-axis" }));
     b.composite.forEach(function (c, i) {
       var y = top + i * rowH, w = Math.abs(c.score) * half;
       add(s, el("text", { x: 0, y: y + 17, "class": "t-label" }, c.name));
-      add(s, el("text", { x: 168, y: y + 17, "class": "t-num-muted" }, c.weight + "%"));
       add(s, el("rect", { x: mid - half, y: y + 6, width: half * 2, height: 14, "class": "c-track" }));
       add(s, el("rect", { x: c.score >= 0 ? mid : mid - w, y: y + 6, width: Math.max(1, w), height: 14, "class": "c-" + tone(c.score) }));
       add(s, el("text", { x: 560, y: y + 17, "text-anchor": "end", "class": "t-num t-" + tone(c.score) }, signed(c.score, 2)));
     });
-    add(s, el("text", { x: 0, y: 450, "class": "t-note" }, "Bars show each component’s score; weights as displayed in the terminal."));
+    add(s, el("text", { x: 0, y: 450, "class": "t-note" }, "Bars show the score of each factor group."));
     return s;
   }
 
   /* ---------- Exhibit 2: signal constellation ---------- */
   function constellation(d) {
-    var s = svg(560, 380, "Scatter of " + d.signals.length + " signals: bias from minus 100 to plus 100 against conviction from 0 to 100. Consensus " +
+    var s = svg(560, 380, "Scatter of " + d.signals.length + " models: bias from minus 100 to plus 100 against conviction from 0 to 100. Consensus " +
       signed(d.bias.consensus, 1) + " percent, bias score " + d.bias.score + ".");
     var L = 52, R = 540, T = 20, B = 330;
     function X(v) { return L + (R - L) * v / 100; }
@@ -74,17 +73,8 @@
     add(s, el("line", { x1: L, y1: B, x2: R, y2: B, "class": "c-axis" }));
     add(s, el("text", { x: (L + R) / 2, y: B + 40, "text-anchor": "middle", "class": "t-muted" }, "Conviction (0–100)"));
     add(s, el("text", { x: 14, y: (T + B) / 2, "text-anchor": "middle", "class": "t-muted", transform: "rotate(-90 14 " + (T + B) / 2 + ")" }, "Bias"));
-    var placed = [];                                       // simple label collision avoidance
-    d.signals.slice().sort(function (a, b) { return b.bias - a.bias; }).forEach(function (p) {
-      var cx = X(p.conviction), cy = Y(p.bias), rr = 4 + p.conviction / 25;
-      add(s, el("circle", { cx: cx, cy: cy, r: rr, "class": "c-" + tone(p.bias) }));
-      var w = p.label.length * 7.6, right = cx + rr + 4 + w < R, lx = right ? cx + rr + 4 : cx - rr - 4 - w, ly = cy + 4;
-      for (var tries = 0; tries < 6; tries++) {
-        var hit = placed.some(function (q) { return lx < q.x + q.w && lx + w > q.x && Math.abs(ly - q.y) < 14; });
-        if (!hit) break; ly += 14;
-      }
-      placed.push({ x: lx, y: ly, w: w });
-      add(s, el("text", { x: lx, y: ly, "class": "t-num", "font-size": 13 }, p.label));
+    d.signals.forEach(function (p) {                       // models are deliberately not named on the public page
+      add(s, el("circle", { cx: X(p.conviction), cy: Y(p.bias), r: 4 + p.conviction / 25, "class": "c-" + tone(p.bias) }));
     });
     add(s, el("text", { x: R - 4, y: T + 16, "text-anchor": "end", "class": "t-note" }, "high-conviction bullish"));
     add(s, el("text", { x: L + 8, y: Y(0) - 8, "class": "t-note" }, "low-conviction noise"));
@@ -219,9 +209,9 @@
     add(s, el("text", { x: 172, y: 222, "class": "t-num t-neutralc", "font-size": 15 }, b.regime));
     badge(330, 60, 1);
     // 2 composite
-    panel(356, 60, 384, 230, "Composite macro score");
+    panel(356, 60, 384, 230, "Factor groups");
     b.composite.forEach(function (c, i) {
-      var y = 108 + i * 28, mid = 600, half = 110, w = Math.abs(c.score) * half;
+      var y = 108 + i * 32, mid = 600, half = 110, w = Math.abs(c.score) * half;
       add(s, el("text", { x: 372, y: y + 14, "class": "t-label", "font-size": 14 }, c.name));
       add(s, el("rect", { x: c.score >= 0 ? mid : mid - w, y: y + 3, width: Math.max(1, w), height: 14, "class": "c-" + tone(c.score) }));
       add(s, el("text", { x: 728, y: y + 14, "text-anchor": "end", "class": "t-num", "font-size": 14 }, signed(c.score, 2)));
@@ -297,6 +287,27 @@
     setTimeout(function () { root.querySelectorAll(".fade:not(.in)").forEach(function (n) { if (n.getBoundingClientRect().top < innerHeight) n.classList.add("in"); }); }, 800);
   }
 
-  function init() { render(); faq(); fade(); }
+
+  /* ---------- light / dark toggle (sun / moon), choice stored per browser ---------- */
+  function themeToggle() {
+    var root = document.documentElement;
+    function apply(t) {
+      if (t === "dark") root.setAttribute("data-theme", "dark"); else root.removeAttribute("data-theme");
+      document.querySelectorAll("[data-theme-toggle]").forEach(function (b) {
+        b.setAttribute("aria-label", t === "dark" ? "Switch to light mode" : "Switch to dark mode");
+        b.setAttribute("aria-pressed", String(t === "dark"));
+      });
+    }
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    document.querySelectorAll("[data-theme-toggle]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var t = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        apply(t);
+        try { localStorage.setItem("ab-theme", t); } catch (e) {}
+      });
+    });
+  }
+
+  function init() { render(); faq(); fade(); themeToggle(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
